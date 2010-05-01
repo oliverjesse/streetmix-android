@@ -1,0 +1,45 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent" android:layout_height="fill_parent"
+    android:orientation="vertical">
+
+    <ImageView 
+        android:id="@+id/captured_image"
+        android:layout_width="fill_parent" 
+        android:layout_height="fill_parent"
+        android:layout_weight="1">
+    </ImageView>
+
+    <Button 
+        android:text="Yes"
+        android:id="@+id/yesbutton"
+        android:layout_width="70px"
+        android:textSize="18px"
+        android:layout_height="70px"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentBottom="true">
+    </Button>
+    
+    <Button 
+        android:text="No"
+        android:id="@+id/nobutton"
+        android:layout_width="70px"
+        android:textSize="18px"
+        android:layout_height="70px"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true">
+    </Button>
+    
+    <TextView
+        android:id="@+id/debugimagetext"
+        android:text="Save Image?"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical|center_horizontal"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:textStyle="bold"
+        android:textSize="20px"
+        android:textColor="#0000ff">
+    </TextView>
+    
+</RelativeLayout>

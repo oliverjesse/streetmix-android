@@ -1,0 +1,188 @@
+package com.scotty.games.missionmission;
+
+import java.util.ArrayList;
+
+import android.app.AlertDialog;
+import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.Point;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.shapes.PathShape;
+
+import com.google.android.maps.ItemizedOverlay;
+import com.google.android.maps.MapView;
+import com.google.android.maps.OverlayItem;
+
+public class MissionItemizedOverlay extends ItemizedOverlay {
+    
+    //Holds all of our overlay items.
+    private ArrayList<OverlayItem> mOverlays = new ArrayList<OverlayItem>();
+
+    //Holds only the points that make up the outline of the largest polygon.
+    private ArrayList<OverlayItem> largestPolyList = new ArrayList<OverlayItem>();
+    
+    private Paint paint;
+    private MissionMission mission;
+    
+    private static int AREA_PROTESTER = 0x4D0059E3;
+    private static int AREA_CORPORATE = 0x53FF0000;
+    
+	public MissionItemizedOverlay(Drawable defaultMarker, MissionMission mission) {
+	    //Bounds the markers' bottom's centers to the target locations.
+		super(boundCenterBottom(defaultMarker));
+		this.mission = mission;
+		
+		paint = new Paint();
+		paint.setDither(true);
+		paint.setColor(AREA_PROTESTER);
+		paint.setStyle(Paint.Style.STROKE);
+		paint.setStrokeJoin(Paint.Join.ROUND);
+		paint.setStrokeCap(Paint.Cap.ROUND);
+		paint.setAntiAlias(true);
+		paint.setStyle(Paint.Style.FILL);
+		paint.setStrokeWidth(3);
+	}
+	
+	public void addOverlay(OverlayItem overlay) {
+	    //May need to add a delay here to ensure that entire method is atomic.
+	    
+	    mOverlays.add(overlay);
+	    if (mOverlays.size() >= 2) {
+	        calculateArea();
+	    }
+	    
+	    //Prepares overlay objects for drawing.
+	    //Makes a request to createItem(i) for marker 'i'.
+	    populate();
+	}
+	
+	@Override
+	public void draw(android.graphics.Canvas canvas, MapView mapView, boolean shadow) {
+	    super.draw(canvas, mapView, shadow);
+	    
+	    drawPolygon(mOverlays, canvas, mapView);
+	    drawPolygon(largestPolyList, canvas, mapView);
+	}
+	
+	protected void drawPolygon(ArrayList<OverlayItem> polygonPoints, android.graphics.Canvas canvas, MapView mapView) {
+	    if (this.size() == 0) {
+	        return;
+	    }
+	    
+	    Path path = new Path();
+	    Point p;
+	    for (OverlayItem overlay : mOverlays) {
+	        p = mapView.getProjection().toPixels(overlay.getPoint(), null);
+	        if (path.isEmpty()) {
+	            path.moveTo(p.x, p.y);
+	            path.lineTo(p.x, p.y);
+	        } else {
+	            path.lineTo(p.x, p.y);
+	        }
+	    }
+	    path.close();
+	    canvas.drawPath(path, paint);
+	}
+	
+	/**
+	 * Updates the perimeter ArrayList.
+	 */
+	protected void calculateArea() {
+	    //TODO: Fill in with area calculation.
+	    GeoPolyPoint firstPointOnHull = findLowestPoint();
+	    constructConvexHull(firstPointOnHull);
+	    calculateArea();
+	    
+	    return;
+	}
+	
+	/**
+	 * Returns the southern-most point in the list.
+	 */
+	private GeoPolyPoint findLowestPoint() {
+	    GeoPolyPoint lowestPoint = new Point(0, Float.NEGATIVE_INFINITY);
+	    for (int i = 0; i < mOverlays.size(); i++) { 
+	        GeoPolyPoint p = (GeoPolyPoint) mOverlays.get(i);
+	        if (p.mayBeOnPath && (p.getLatitude() > lowestPoint.getLatitude())) {
+	            lowestPoint = p;
+	        }
+	    }
+	    
+	    return lowestPoint;
+	}
+	
+	/**
+	 * Constructs a new ArrayList containing the perimeter points of
+	 * the largest convex polygon created by the points of mOverlays.
+	 * Assumes that mOverlays has 3 or more elements.
+	 */
+	private void constructConvexHull(GeoPolyPoint startingPoint) {
+	    //Construct the convex hull path.
+	    ArrayList convexHull = new ArrayList<OverlayItem>();
+	    double angleToLastPoint = 0.0f;
+	    
+	    do {
+	        convexHull.add(lastPointOnHull);
+	        double lastAngle = Double.POSITIVE_INFINITY;
+	        Point lastPoint = null;
+	        
+	        //Check each elligible point to see if it is on the hull path.
+	        for (int j = 0; j < graphPoints.size(); j++) {
+	            Point consideredPoint = (Point) graphPoints.get(j);
+	            if ((!consideredPoint.isOnPath) || (consideredPoint == lastPointOnHull)) {
+	                continue;
+	            }
+	            
+	            double angle = atan2(
+	                -consideredPoint.y - -lastPointOnHull.y,
+	                consideredPoint.x - lastPointOnHull.x);
+	            if (useDegrees) {
+	                angle = Math.toDegrees(angle);
+	            }
+                
+	            if ((angle < 0.0f) || (angle < angleToLastPoint)) {
+	                angle += (useDegrees) ? 360.0f : 2.0f * Math.PI;
+	            }
+	            
+	            if (angle <= lastAngle) {
+	                lastPoint = consideredPoint;
+	                lastAngle = angle;
+	            }
+	        }
+	        
+	        lastPointOnHull = lastPoint;
+	        angleToLastPoint = lastAngle;
+	        
+	    } while (lastPointOnHull != startingPoint);
+	}
+	
+	/**
+	 * Determines the area of the convex polygon outlined by the 
+	 * ArrayList largestPolyList. Assumes that largestPolyList
+	 * has three or more elements.
+     */
+	private void calculateArea() {
+	    //TODO: Fill in with the area calculation.
+	    return;
+	}
+	
+	@Override
+	protected OverlayItem createItem(int i) {
+		return mOverlays.get(i);
+	}
+	
+	@Override
+	public int size() {
+		return mOverlays.size();
+	}
+	
+	@Override
+	protected boolean onTap(int index) {
+	    OverlayItem item = mOverlays.get(index);
+	    AlertDialog.Builder dialog = new AlertDialog.Builder(mission.getView().getContext());
+	    dialog.setTitle(item.getTitle());
+	    dialog.setMessage(item.getSnippet());
+	    dialog.show();
+	    return true;
+	}
+}

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/mainlayout"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent" >
+
+    <com.google.android.maps.MapView
+        android:id="@+id/mapview"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:clickable="true"
+        android:apiKey="0fbUkqU9MbqA0gFGj-il-IhxbFy-AZ4WYrdeIqw"
+    />
+    
+    <ImageButton 
+        android:text="Camera"
+        android:id="@+id/cameraViewButton"
+        android:layout_width="70px"
+        android:textSize="18px"
+        android:layout_height="70px"
+        android:src="@drawable/camera_button_icon" >
+    </ImageButton>
+
+
+</RelativeLayout>
