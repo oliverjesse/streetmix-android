@@ -35,7 +35,4 @@ public class PlayerLocationOverlay extends MyLocationOverlay {
         );
     }
     
-    //public void onLocationChanged(android.location.Location location) {
-    //    myLocation = location;
-    //}
 }

@@ -23,6 +23,7 @@ public class MissionItemizedOverlay extends ItemizedOverlay {
     
     private Paint paint;
     private MissionMission mission;
+    private float area = 0.0f;
     
     private static int AREA_PROTESTER = 0x4D0059E3;
     private static int AREA_CORPORATE = 0x53FF0000;
@@ -48,7 +49,7 @@ public class MissionItemizedOverlay extends ItemizedOverlay {
 	    
 	    mOverlays.add(overlay);
 	    if (mOverlays.size() >= 2) {
-	        calculateArea();
+	        updateArea();
 	    }
 	    
 	    //Prepares overlay objects for drawing.
@@ -58,20 +59,20 @@ public class MissionItemizedOverlay extends ItemizedOverlay {
 	
 	@Override
 	public void draw(android.graphics.Canvas canvas, MapView mapView, boolean shadow) {
-	    super.draw(canvas, mapView, shadow);
+	    //drawPolygon(mOverlays, canvas, mapView);
+		drawPolygon(largestPolyList, canvas, mapView);
 	    
-	    drawPolygon(mOverlays, canvas, mapView);
-	    drawPolygon(largestPolyList, canvas, mapView);
+		super.draw(canvas, mapView, shadow);
 	}
 	
-	protected void drawPolygon(ArrayList<OverlayItem> polygonPoints, android.graphics.Canvas canvas, MapView mapView) {
+	protected void drawPolygon(ArrayList<OverlayItem> polygonItems, android.graphics.Canvas canvas, MapView mapView) {
 	    if (this.size() == 0) {
 	        return;
 	    }
 	    
 	    Path path = new Path();
 	    Point p;
-	    for (OverlayItem overlay : mOverlays) {
+	    for (OverlayItem overlay : polygonItems) {
 	        p = mapView.getProjection().toPixels(overlay.getPoint(), null);
 	        if (path.isEmpty()) {
 	            path.moveTo(p.x, p.y);
@@ -87,28 +88,32 @@ public class MissionItemizedOverlay extends ItemizedOverlay {
 	/**
 	 * Updates the perimeter ArrayList.
 	 */
-	protected void calculateArea() {
-	    //TODO: Fill in with area calculation.
-	    GeoPolyPoint firstPointOnHull = findLowestPoint();
-	    constructConvexHull(firstPointOnHull);
-	    calculateArea();
+	protected void updateArea() {
+		if (mOverlays.size() > 2) {
+			OverlayItem firstItemOnHull = findLowestPoint();
+			constructConvexHull(firstItemOnHull);
+			calculateArea();
+		}
 	    
 	    return;
 	}
 	
 	/**
-	 * Returns the southern-most point in the list.
+	 * Returns the OverlayItem of the southern-most point in the list.
 	 */
-	private GeoPolyPoint findLowestPoint() {
-	    GeoPolyPoint lowestPoint = new Point(0, Float.NEGATIVE_INFINITY);
-	    for (int i = 0; i < mOverlays.size(); i++) { 
-	        GeoPolyPoint p = (GeoPolyPoint) mOverlays.get(i);
-	        if (p.mayBeOnPath && (p.getLatitude() > lowestPoint.getLatitude())) {
+	private OverlayItem findLowestPoint() {
+	    OverlayItem lowestItem = null;
+	    GeoPolyPoint lowestPoint = new GeoPolyPoint(Integer.MAX_VALUE, 0);
+	    for (int i = 0; i < mOverlays.size(); i++) {
+	        OverlayItem item = mOverlays.get(i);
+	        GeoPolyPoint p = (GeoPolyPoint) item.getPoint();
+	        if (p.mayBeOnPath && (p.getLatitudeE6() < lowestPoint.getLatitudeE6())) {
 	            lowestPoint = p;
+	            lowestItem = item;
 	        }
 	    }
 	    
-	    return lowestPoint;
+	    return lowestItem;
 	}
 	
 	/**
@@ -116,44 +121,62 @@ public class MissionItemizedOverlay extends ItemizedOverlay {
 	 * the largest convex polygon created by the points of mOverlays.
 	 * Assumes that mOverlays has 3 or more elements.
 	 */
-	private void constructConvexHull(GeoPolyPoint startingPoint) {
+	private void constructConvexHull(OverlayItem startingItem) {
+	    
 	    //Construct the convex hull path.
-	    ArrayList convexHull = new ArrayList<OverlayItem>();
-	    double angleToLastPoint = 0.0f;
+	    ArrayList<OverlayItem> convexHull = new ArrayList<OverlayItem>();
+	    OverlayItem lastItemOnHull = startingItem;
+	    GeoPolyPoint startingPoint = (GeoPolyPoint) startingItem.getPoint();
+	    GeoPolyPoint lastPointOnHull = startingPoint;
+	    
+	    double angleToLastPoint = 0.0d;
 	    
 	    do {
-	        convexHull.add(lastPointOnHull);
+	        convexHull.add(lastItemOnHull);
 	        double lastAngle = Double.POSITIVE_INFINITY;
-	        Point lastPoint = null;
+	        GeoPolyPoint lastPoint = null;
+	        OverlayItem lastItem = null;
 	        
 	        //Check each elligible point to see if it is on the hull path.
-	        for (int j = 0; j < graphPoints.size(); j++) {
-	            Point consideredPoint = (Point) graphPoints.get(j);
-	            if ((!consideredPoint.isOnPath) || (consideredPoint == lastPointOnHull)) {
+	        for (int j = 0; j < mOverlays.size(); j++) {
+	            OverlayItem consideredItem = mOverlays.get(j);
+	            GeoPolyPoint consideredPoint = (GeoPolyPoint) consideredItem.getPoint();
+	            if ((!consideredPoint.mayBeOnPath) || (consideredPoint == lastPointOnHull)) {
 	                continue;
 	            }
 	            
-	            double angle = atan2(
-	                -consideredPoint.y - -lastPointOnHull.y,
-	                consideredPoint.x - lastPointOnHull.x);
-	            if (useDegrees) {
-	                angle = Math.toDegrees(angle);
-	            }
+	            double angle = Math.atan2(
+	                consideredPoint.getLatitudeE6() - lastPointOnHull.getLatitudeE6(),
+	                consideredPoint.getLongitudeE6() - lastPointOnHull.getLongitudeE6());
                 
 	            if ((angle < 0.0f) || (angle < angleToLastPoint)) {
-	                angle += (useDegrees) ? 360.0f : 2.0f * Math.PI;
+	                angle += 2.0f * Math.PI;
 	            }
 	            
 	            if (angle <= lastAngle) {
+	                lastItem = consideredItem;
 	                lastPoint = consideredPoint;
 	                lastAngle = angle;
 	            }
 	        }
-	        
+
+	        lastItemOnHull = lastItem;
 	        lastPointOnHull = lastPoint;
 	        angleToLastPoint = lastAngle;
 	        
-	    } while (lastPointOnHull != startingPoint);
+	    } while (lastItemOnHull != startingItem);
+	    
+	    //Set points not on path to be ignored later.
+	    for (int i = 0; i < mOverlays.size(); i++) {
+	        OverlayItem item = mOverlays.get(i);
+	        GeoPolyPoint p = (GeoPolyPoint) item.getPoint();
+	        
+	        if (p.mayBeOnPath && !convexHull.contains(item)) {
+	            p.mayBeOnPath = false;
+	        }
+	    }
+	    
+	    largestPolyList = convexHull;
 	}
 	
 	/**
@@ -162,8 +185,28 @@ public class MissionItemizedOverlay extends ItemizedOverlay {
 	 * has three or more elements.
      */
 	private void calculateArea() {
-	    //TODO: Fill in with the area calculation.
-	    return;
+	    if (largestPolyList.size() < 3) {
+	        area = 0.0f;
+	    }
+	    
+	    float areaRunningSum = 0.0f;
+	    GeoPolyPoint prevPoint = (GeoPolyPoint) largestPolyList.get(largestPolyList.size() - 1).getPoint();
+	    for (int i = 0; i < largestPolyList.size(); i++) { 
+	        GeoPolyPoint currentPoint = (GeoPolyPoint) largestPolyList.get(i).getPoint();
+	        
+	        areaRunningSum += 
+	            ((((float) prevPoint.getLongitudeE6()) * 0.000001) * (((float) currentPoint.getLatitudeE6()) * 0.000001)) 
+	            - 
+	            ((((float) currentPoint.getLongitudeE6()) * 0.000001) * (((float) prevPoint.getLatitudeE6()) * 0.000001));
+	        
+            prevPoint = currentPoint;	        
+	    }
+	    
+	    area = areaRunningSum / 2;
+	}
+	
+	public float getArea() {
+		return area;
 	}
 	
 	@Override

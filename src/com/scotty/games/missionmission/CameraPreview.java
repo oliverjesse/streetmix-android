@@ -54,7 +54,7 @@ public class CameraPreview extends Activity implements SurfaceHolder.Callback {
     private SimpleDateFormat timeStampFormat = 
         new SimpleDateFormat("yyyyMMddHHmmssSS");    
     
-    private Intent mIntent;    
+    private Intent data;    
     
     @Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -68,6 +68,7 @@ public class CameraPreview extends Activity implements SurfaceHolder.Callback {
         setContentView(R.layout.camera_layout);
         //this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         
+        data = getIntent();
         
         
         
@@ -83,14 +84,16 @@ public class CameraPreview extends Activity implements SurfaceHolder.Callback {
         debugImageText = (TextView) findViewById(R.id.debugimagetext);
         
         mPictureCallbackRaw = new Camera.PictureCallback() {  
-            public void onPictureTaken(byte[] data, Camera c) {  
-                Log.e(getClass().getSimpleName(), "PICTURE CALLBACK RAW: " + data);  
+            public void onPictureTaken(byte[] camData, Camera c) {  
+                Log.e(getClass().getSimpleName(), "PICTURE CALLBACK RAW: " + camData);  
                 debugString = debugString + " Raw";
                 debugText.setText(debugString);
                 
                 mCamera.startPreview();
                 
                 //TODO: Put in a cancel option here.
+                data.putExtra("com.scotty.games.missionmission.tookPicture", true);
+                setResult(RESULT_OK);
                 finish();
                 //setContentView(R.layout.image_preview);
                 //yesButton = (Button) findViewById(R.id.yesbutton);
@@ -111,8 +114,8 @@ public class CameraPreview extends Activity implements SurfaceHolder.Callback {
         };  
         
         mPictureCallbackJpeg = new Camera.PictureCallback() {  
-            public void onPictureTaken(byte[] data, Camera c) {  
-                Log.e(getClass().getSimpleName(), "PICTURE CALLBACK JPEG: data.length = " + data);  
+            public void onPictureTaken(byte[] camData, Camera c) {  
+                Log.e(getClass().getSimpleName(), "PICTURE CALLBACK JPEG: data.length = " + camData);  
                 debugString = debugString + " Jpeg";
                 debugText.setText(debugString);
             }  
@@ -129,6 +132,7 @@ public class CameraPreview extends Activity implements SurfaceHolder.Callback {
         mapViewButton.setOnClickListener(new SurfaceView.OnClickListener() {
 			@Override
 			public void onClick(View v) {
+			    setResult(RESULT_CANCELED);
 				finish();
 			}
         });
@@ -229,10 +233,10 @@ class ImageCaptureCallback implements PictureCallback  {
     }  
     
     @Override  
-    public void onPictureTaken(byte[] data, Camera camera) {  
+    public void onPictureTaken(byte[] camData, Camera camera) {  
         try {  
-            Log.v(getClass().getSimpleName(), "onPictureTaken=" + data + " length = " + data.length);  
-            filoutputStream.write(data);  
+            Log.v(getClass().getSimpleName(), "onPictureTaken=" + camData + " length = " + camData.length);  
+            filoutputStream.write(camData);  
             filoutputStream.flush();  
             filoutputStream.close();  
         } catch(Exception ex) {  

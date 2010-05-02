@@ -41,6 +41,8 @@ public class MissionMission extends MapActivity {
     private String time = "Calculating Time...";
     private String buffer = "\n\n\n";
     private String debug = "DEBUG";
+    private Intent myIntent = null;
+    private GeoPoint playerLocation = null;
     
     private static final int MILLIS_PER_MINUTE = 60000;
     
@@ -79,15 +81,20 @@ public class MissionMission extends MapActivity {
 			        return;
 			    }
 			    
-			    Intent myIntent = new Intent(mapView.getContext(), CameraPreview.class);
+			    myIntent = new Intent(
+			        mapView.getContext(), 
+			        com.scotty.games.missionmission.CameraPreview.class);
                 startActivityForResult(myIntent, 0);
 			}
         });
         
         //Plot some test points.
-        placeMarker(new GeoPolyPoint(37761432, -122417135));
-        placeMarker(new GeoPolyPoint(37761788, -122419260));
-        placeMarker(new GeoPolyPoint(37758565, -122419002));
+        //placeMarker(new GeoPolyPoint(37761432, -122417135));
+        //placeMarker(new GeoPolyPoint(37761788, -122419260));
+        //placeMarker(new GeoPolyPoint(37758565, -122419002));
+        //placeMarker(new GeoPolyPoint(37759000, -122418000));
+        //placeMarker(new GeoPolyPoint(37760000, -122418000));
+        //placeMarker(new GeoPolyPoint(37760000, -122421000));
         
         //Setup the map controller.
         mapController = mapView.getController();
@@ -101,15 +108,17 @@ public class MissionMission extends MapActivity {
             public void run() {
                 //For debugging, Cory Hall's coordinates are:
                 //Longitude = -122.257976, Latitude = 37.875344
-                mapController.animateTo(playerLocationOverlay.getMyLocation());
+                playerLocation = playerLocationOverlay.getMyLocation();
+                mapController.animateTo(playerLocation);
                 mapController.setZoom(18);
             }
         });
         
-        
-        long gameLength = 1; //gameLength * MILLIS_PER_MINUTE
+        //Set up the game timer.
+        long gameLengthInMinutes = 20;
+        long gameLength = gameLengthInMinutes * MILLIS_PER_MINUTE;
         vibrate = (Vibrator) getSystemService(mapView.getContext().VIBRATOR_SERVICE);
-        timer = new CountDownTimer(10000, 1000) {
+        timer = new CountDownTimer(gameLength, 1000) {
             public void onTick(long millisUntilFinished) {
                 millisLeft = millisUntilFinished / 1000;
                 minutes = millisLeft / 60;
@@ -131,7 +140,6 @@ public class MissionMission extends MapActivity {
                 updateGameStats();
             }
         }.start();
-
     }
     
     
@@ -140,7 +148,62 @@ public class MissionMission extends MapActivity {
         return false;
     }
     
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+         //if (requestCode == PICK_CONTACT_REQUEST) {
+         //if ((data != null) && data.getBooleanExtra("com.scotty.games.missionmission.tookPicture", false)) {
+    	 
+         if (resultCode == RESULT_OK) {
+             //GeoPoint playerLocation = null;
+             
+             //long timeOut = 1000 * 20;
+             //long startTime = System.currentTimeMillis();
+             //long currentTime = 0;
+             //while ((playerLocation == null) && (currentTime < timeOut)) { 
+             //    playerLocation = playerLocationOverlay.getMyLocation();
+             //    currentTime = System.currentTimeMillis() - startTime;
+             //}
+             
+             playerLocation = playerLocationOverlay.getMyLocation();
+             if (playerLocation == null) {
+                 debugText.setText(buffer + "ERROR: Couldn't locate player.");
+                 return;
+             }
+             
+             GeoPolyPoint currentLocation = 
+                new GeoPolyPoint(
+                    playerLocation.getLatitudeE6(), 
+                    playerLocation.getLongitudeE6());
+             placeMarker(currentLocation);	
+             debugText.setText(buffer + "true");
+         } else {
+             debugText.setText(buffer + "false");
+         }
+         
+         //}
+    }
     
+    @Override
+    protected void onResume() {
+    	super.onResume();
+    	
+    	/*
+    	if (myIntent != null) {
+    	    String buf = 
+    	       "" + myIntent.getBooleanExtra("com.scotty.games.missionmission.tookPicture", false) + 
+    	       " " + myIntent.hasExtra("com.scotty.games.missionmission.tookPicture");
+    		
+    	    if (myIntent.getBooleanExtra("com.scotty.games.missionmission.tookPicture", false) && (millisLeft > 0)) {
+    		    GeoPolyPoint currentLocation = 
+    		        new GeoPolyPoint(playerLocationOverlay.getMyLocation());
+    			placeMarker(currentLocation);	
+    		}
+    		myIntent = null;
+    		
+    		debugText.setText(buffer + buf);
+    	}
+    	*/
+    }
     
     private void placeMarker(GeoPolyPoint point) {
         OverlayItem marker = new OverlayItem(point, 
@@ -153,6 +216,9 @@ public class MissionMission extends MapActivity {
         
         area = itemizedOverlay.getArea();
         evidenceFound = itemizedOverlay.size();
+        
+        //POST: Lat&Long of new point, the team number, photo.
+        //Wait for success or failure.
     }
     
     public MapView getView() {
@@ -160,6 +226,7 @@ public class MissionMission extends MapActivity {
     }
     
     public void updateGameStats() {
-    	gameData.setText(time + "\nClues: " + evidenceFound + " pieces\nArea: " + area + " units");
+    	gameData.setText(time + "\nClues: " + evidenceFound +
+    	    " pieces\nArea: " + area + " units");
     }
 }

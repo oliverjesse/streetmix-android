@@ -12,4 +12,8 @@ public class GeoPolyPoint extends GeoPoint {
     public GeoPolyPoint(int latitude, int longitude) {
         super(latitude, longitude);
     }
+    
+    public GeoPolyPoint(GeoPoint p) {
+        super(p.getLatitudeE6(), p.getLongitudeE6());
+    }
 }

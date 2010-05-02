@@ -34,13 +34,14 @@ public class MissionMission extends MapActivity {
     private TextView gameData;
     private TextView debugText;
     private int evidenceFound = 0;
-    private int area = 0;
+    private float area = 0;
     private long millisLeft = 0;
     private long minutes = 20;
     private long seconds = 0;
     private String time = "Calculating Time...";
     private String buffer = "\n\n\n";
     private String debug = "DEBUG";
+    private Intent myIntent = null;
     
     private static final int MILLIS_PER_MINUTE = 60000;
     
@@ -79,7 +80,7 @@ public class MissionMission extends MapActivity {
 			        return;
 			    }
 			    
-			    Intent myIntent = new Intent(mapView.getContext(), CameraPreview.class);
+			    myIntent = new Intent(mapView.getContext(), CameraPreview.class);
                 startActivityForResult(myIntent, 0);
 			}
         });
@@ -88,6 +89,9 @@ public class MissionMission extends MapActivity {
         placeMarker(new GeoPolyPoint(37761432, -122417135));
         placeMarker(new GeoPolyPoint(37761788, -122419260));
         placeMarker(new GeoPolyPoint(37758565, -122419002));
+        placeMarker(new GeoPolyPoint(37759000, -122418000));
+        placeMarker(new GeoPolyPoint(37760000, -122418000));
+        placeMarker(new GeoPolyPoint(37760000, -122421000));
         
         //Setup the map controller.
         mapController = mapView.getController();
@@ -140,10 +144,18 @@ public class MissionMission extends MapActivity {
         return false;
     }
     
-    
+    @Override
+    protected void onResume() {
+    	super.onResume();
+    	
+    	if (myIntent != null) {
+    		if (myIntent.getBooleanExtra("tookPicture", false)) {
+    			placeMarker
+    		}
+    	}
+    }
     
     private void placeMarker(GeoPolyPoint point) {
-        evidenceFound += 1;
         OverlayItem marker = new OverlayItem(point, 
             "Clue " + evidenceFound, 
             "Longitude = " + 
@@ -151,6 +163,12 @@ public class MissionMission extends MapActivity {
             "\nLatitude = " + 
             (((float)point.getLatitudeE6())/1000000.0));
         itemizedOverlay.addOverlay(marker);
+        
+        area = itemizedOverlay.getArea();
+        evidenceFound = itemizedOverlay.size();
+        
+        //POST: Lat&Long of new point, the team number, photo.
+        //Wait for success or failure.
     }
     
     public MapView getView() {
