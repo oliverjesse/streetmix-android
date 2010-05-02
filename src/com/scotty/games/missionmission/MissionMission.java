@@ -1,6 +1,7 @@
 package com.scotty.games.missionmission;
 
 import java.util.List;
+import java.util.Random;
 
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
@@ -20,31 +21,39 @@ import com.google.android.maps.OverlayItem;
 
 
 
-public class MissionMission extends MapActivity {
-    
-    private CountDownTimer timer;
-    private Vibrator vibrate;
+public class MissionMission extends MapActivity {    
     private MapView mapView;
     private List<Overlay> mapOverlays;
     private Drawable drawable;
-    private MissionItemizedOverlay teamMarkerOverlay;
     private PlayerLocationOverlay playerLocationOverlay;
+    private MissionItemizedOverlay homeMarkerOverlay;
+    private MissionItemizedOverlay teamMarkerOverlay;
+    private MissionItemizedOverlay opponentMarkerOverlay;
+    
+    private CountDownTimer timer;
+    private Vibrator vibrate;
     private MapController mapController;
+    private WebMessenger messenger;
+    private Random random;
+
     private ImageButton cameraViewButton;
     private TextView gameData;
     private TextView debugText;
+    private String time = "Calculating Time...";
+    private String buffer = "\n\n\n";
+    private String debug = "DEBUG";
+
+    private int teamNumber = 0;
     private int evidenceFound = 0;
     private float area = 0;
     private long millisLeft = 0;
     private long minutes = 20;
     private long seconds = 0;
-    private String time = "Calculating Time...";
-    private String buffer = "\n\n\n";
-    private String debug = "DEBUG";
     private Intent myIntent = null;
     private GeoPoint playerLocation = null;
     
     private static final int MILLIS_PER_MINUTE = 60000;
+    private static final int CAMERA_ACTION = 0;
     
     /** Called when the activity is first created. */
     @Override
@@ -65,24 +74,10 @@ public class MissionMission extends MapActivity {
         debugText = (TextView) findViewById(R.id.debugtext);
         debugText.setText(buffer + debug);
         
-        //The Camera View swap button.
-        cameraViewButton = (ImageButton) findViewById(R.id.cameraViewButton);
-        cameraViewButton.setOnClickListener(new MapView.OnClickListener() {
-        	@Override
-			public void onClick(View v) {
-			    if (millisLeft == 0) {
-			        return;
-			    }
-			    
-			    myIntent = new Intent(
-			        mapView.getContext(), 
-			        com.scotty.games.missionmission.CameraPreview.class);
-                startActivityForResult(myIntent, 0);
-			}
-        });
-        
-        //Plot some test points.
-        //plotTestPoints();
+        //Set up the messenger to send clues to the server.
+        random = new Random();
+        teamNumber = random.nextInt(1000);
+        messenger = new WebMessenger(29);//teamNumber);
         
         //Setup the map controller.
         mapController = mapView.getController();
@@ -100,6 +95,22 @@ public class MissionMission extends MapActivity {
                 mapController.animateTo(playerLocation);
                 mapController.setZoom(18);
             }
+        });
+        
+        //The Camera View swap button.
+        cameraViewButton = (ImageButton) findViewById(R.id.cameraViewButton);
+        cameraViewButton.setOnClickListener(new MapView.OnClickListener() {
+        	@Override
+			public void onClick(View v) {
+			    if (millisLeft == 0) {
+			        return;
+			    }
+			    
+			    myIntent = new Intent(
+			        mapView.getContext(), 
+			        com.scotty.games.missionmission.CameraPreview.class);
+                startActivityForResult(myIntent, CAMERA_ACTION);
+			}
         });
         
         //Set up the game timer.
@@ -128,6 +139,9 @@ public class MissionMission extends MapActivity {
                 updateGameStats();
             }
         }.start();
+        
+        //Plot some test points.
+        //plotTestPoints();
     }
     
     
@@ -136,77 +150,65 @@ public class MissionMission extends MapActivity {
         return false;
     }
     
+    /**
+     * Called when the map becomes the focus again after going off to
+     * some other game feature like the camera.
+     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-         //if (requestCode == PICK_CONTACT_REQUEST) {
-         //if ((data != null) && data.getBooleanExtra("com.scotty.games.missionmission.tookPicture", false)) {
-    	 
-         if (resultCode == RESULT_OK) {
-             //GeoPoint playerLocation = null;
+         if (requestCode == CAMERA_ACTION) { 
              
-             //long timeOut = 1000 * 20;
-             //long startTime = System.currentTimeMillis();
-             //long currentTime = 0;
-             //while ((playerLocation == null) && (currentTime < timeOut)) { 
-             //    playerLocation = playerLocationOverlay.getMyLocation();
-             //    currentTime = System.currentTimeMillis() - startTime;
-             //}
-             
-             playerLocation = playerLocationOverlay.getMyLocation();
-             if (playerLocation == null) {
-                 debugText.setText(buffer + "ERROR: Couldn't locate player.");
-                 return;
+             if (resultCode == RESULT_OK) {
+                 //Acquire the player's current location, move the game 
+                 //camera and set a marker there, and send a message off 
+                 //to the server.
+                 
+                 //GeoPoint playerLocation = null;
+                 //long timeOut = 1000 * 20;
+                 //long startTime = System.currentTimeMillis();
+                 //long currentTime = 0;
+                 //while ((playerLocation == null) && (currentTime < timeOut)) { 
+                 //    playerLocation = playerLocationOverlay.getMyLocation();
+                 //    currentTime = System.currentTimeMillis() - startTime;
+                 //}
+                 
+                 playerLocation = playerLocationOverlay.getMyLocation();
+                 if (playerLocation == null) {
+                     debugText.setText(buffer + "ERROR: Couldn't locate player.");
+                     return;
+                 }
+                 mapController.animateTo(playerLocation);
+                 
+                 GeoPolyPoint currentLocation = 
+                    new GeoPolyPoint(
+                        playerLocation.getLatitudeE6(), 
+                        playerLocation.getLongitudeE6());
+                 placeMarker(currentLocation);
+                 messenger.sendClue(currentLocation, "Clue #" + evidenceFound);
+                 
+                 debugText.setText(buffer + "Claimed!");
+             } else {
+                 debugText.setText(buffer + "Canceled");
              }
-             
-             GeoPolyPoint currentLocation = 
-                new GeoPolyPoint(
-                    playerLocation.getLatitudeE6(), 
-                    playerLocation.getLongitudeE6());
-             placeMarker(currentLocation);	
-             debugText.setText(buffer + "true");
-         } else {
-             debugText.setText(buffer + "false");
          }
-         
-         //}
     }
     
     @Override
     protected void onResume() {
     	super.onResume();
-    	
-    	/*
-    	if (myIntent != null) {
-    	    String buf = 
-    	       "" + myIntent.getBooleanExtra("com.scotty.games.missionmission.tookPicture", false) + 
-    	       " " + myIntent.hasExtra("com.scotty.games.missionmission.tookPicture");
-    		
-    	    if (myIntent.getBooleanExtra("com.scotty.games.missionmission.tookPicture", false) && (millisLeft > 0)) {
-    		    GeoPolyPoint currentLocation = 
-    		        new GeoPolyPoint(playerLocationOverlay.getMyLocation());
-    			placeMarker(currentLocation);	
-    		}
-    		myIntent = null;
-    		
-    		debugText.setText(buffer + buf);
-    	}
-    	*/
     }
     
     private void placeMarker(GeoPolyPoint point) {
+        evidenceFound++;
         OverlayItem marker = new OverlayItem(point, 
             "Clue " + evidenceFound, 
             "Longitude = " + 
             (((float)point.getLongitudeE6())/1000000.0) + 
             "\nLatitude = " + 
             (((float)point.getLatitudeE6())/1000000.0));
+        
         teamMarkerOverlay.addOverlay(marker);
-        
-        area = teamMarkerOverlay.getArea();
-        evidenceFound = teamMarkerOverlay.size();
-        
-        //POST: Lat&Long of new point, the team number, photo.
-        //Wait for success or failure.
+        area = teamMarkerOverlay.getArea() * 1000000.0f;
     }
     
     public MapView getView() {
@@ -218,12 +220,16 @@ public class MissionMission extends MapActivity {
     	    " pieces\nArea: " + area + " units");
     }
     
+    /**
+     * Plots some test markers down in the Mission District
+     * of San Francisco.
+     */
     public void plotTestPoints() {
-        //placeMarker(new GeoPolyPoint(37761432, -122417135));
-        //placeMarker(new GeoPolyPoint(37761788, -122419260));
-        //placeMarker(new GeoPolyPoint(37758565, -122419002));
-        //placeMarker(new GeoPolyPoint(37759000, -122418000));
-        //placeMarker(new GeoPolyPoint(37760000, -122418000));
-        //placeMarker(new GeoPolyPoint(37760000, -122421000));
+        placeMarker(new GeoPolyPoint(37761432, -122417135));
+        placeMarker(new GeoPolyPoint(37761788, -122419260));
+        placeMarker(new GeoPolyPoint(37758565, -122419002));
+        placeMarker(new GeoPolyPoint(37759000, -122418000));
+        placeMarker(new GeoPolyPoint(37760000, -122418000));
+        placeMarker(new GeoPolyPoint(37760000, -122421000));
     }
 }

@@ -49,15 +49,16 @@ public class WebMessenger {
 	        nameValuePairs.add(new BasicNameValuePair("clue[lat]", "" + ((float) point.getLatitudeE6()) * 0.000001f));  
 	        nameValuePairs.add(new BasicNameValuePair("clue[long]", "" + ((float) point.getLongitudeE6()) * 0.000001f));
 	        nameValuePairs.add(new BasicNameValuePair("clue[caption]", caption));
+	        //nameValuePairs.add(new BasicNameValuePair("clue[photo]", ???));
 	        httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));  
 	      
 	        // Execute HTTP Post Request  
 	        HttpResponse response = httpclient.execute(httppost);  
 	        
 	    } catch (ClientProtocolException e) {  
-	        // TODO Auto-generated catch block  
+	        return false;
 	    } catch (IOException e) {  
-	       // TODO Auto-generated catch block
+	        return false;
 	    }
 	    
 	    return true;
