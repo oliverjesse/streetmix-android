@@ -27,7 +27,7 @@ public class MissionMission extends MapActivity {
     private MapView mapView;
     private List<Overlay> mapOverlays;
     private Drawable drawable;
-    private MissionItemizedOverlay itemizedOverlay;
+    private MissionItemizedOverlay teamMarkerOverlay;
     private PlayerLocationOverlay playerLocationOverlay;
     private MapController mapController;
     private ImageButton cameraViewButton;
@@ -57,20 +57,13 @@ public class MissionMission extends MapActivity {
         
         mapOverlays = mapView.getOverlays();
         drawable = this.getResources().getDrawable(R.drawable.arrow_blue);
-        itemizedOverlay = new MissionItemizedOverlay(drawable, this);
-        mapOverlays.add(itemizedOverlay);
+        teamMarkerOverlay = new MissionItemizedOverlay(drawable, this);
+        mapOverlays.add(teamMarkerOverlay);
         
         //Set up the printing for the game data.
         gameData  = (TextView) findViewById(R.id.gamedata);
         debugText = (TextView) findViewById(R.id.debugtext);
         debugText.setText(buffer + debug);
-        
-        //mapview.setOnClickListener(new MapView.OnClickListener() {
-        //    @Override
-        //    public void onClick(View v) {
-        //        
-        //    }
-        //}
         
         //The Camera View swap button.
         cameraViewButton = (ImageButton) findViewById(R.id.cameraViewButton);
@@ -89,12 +82,7 @@ public class MissionMission extends MapActivity {
         });
         
         //Plot some test points.
-        //placeMarker(new GeoPolyPoint(37761432, -122417135));
-        //placeMarker(new GeoPolyPoint(37761788, -122419260));
-        //placeMarker(new GeoPolyPoint(37758565, -122419002));
-        //placeMarker(new GeoPolyPoint(37759000, -122418000));
-        //placeMarker(new GeoPolyPoint(37760000, -122418000));
-        //placeMarker(new GeoPolyPoint(37760000, -122421000));
+        //plotTestPoints();
         
         //Setup the map controller.
         mapController = mapView.getController();
@@ -212,10 +200,10 @@ public class MissionMission extends MapActivity {
             (((float)point.getLongitudeE6())/1000000.0) + 
             "\nLatitude = " + 
             (((float)point.getLatitudeE6())/1000000.0));
-        itemizedOverlay.addOverlay(marker);
+        teamMarkerOverlay.addOverlay(marker);
         
-        area = itemizedOverlay.getArea();
-        evidenceFound = itemizedOverlay.size();
+        area = teamMarkerOverlay.getArea();
+        evidenceFound = teamMarkerOverlay.size();
         
         //POST: Lat&Long of new point, the team number, photo.
         //Wait for success or failure.
@@ -228,5 +216,14 @@ public class MissionMission extends MapActivity {
     public void updateGameStats() {
     	gameData.setText(time + "\nClues: " + evidenceFound +
     	    " pieces\nArea: " + area + " units");
+    }
+    
+    public void plotTestPoints() {
+        //placeMarker(new GeoPolyPoint(37761432, -122417135));
+        //placeMarker(new GeoPolyPoint(37761788, -122419260));
+        //placeMarker(new GeoPolyPoint(37758565, -122419002));
+        //placeMarker(new GeoPolyPoint(37759000, -122418000));
+        //placeMarker(new GeoPolyPoint(37760000, -122418000));
+        //placeMarker(new GeoPolyPoint(37760000, -122421000));
     }
 }
