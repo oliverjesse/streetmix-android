@@ -19,8 +19,33 @@
         android:layout_width="70px"
         android:textSize="18px"
         android:layout_height="70px"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
         android:src="@drawable/camera_button_icon" >
     </ImageButton>
-
-
+    
+    <TextView
+        android:id="@+id/gamedata"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical|center_horizontal"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:textStyle="bold"
+        android:textSize="20px"
+        android:textColor="#ff0000">
+    </TextView>
+    
+    <TextView
+        android:id="@+id/debugtext"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical|center_horizontal"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:textStyle="bold"
+        android:textSize="20px"
+        android:textColor="#0000ff">
+    </TextView>
+    
 </RelativeLayout>

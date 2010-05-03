@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Random;
 
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -115,8 +116,7 @@ public class MissionMission extends MapActivity {
         
         //Set up the game timer.
         long gameLengthInMinutes = 20;
-        long gameLength = gameLengthInMinutes * MILLIS_PER_MINUTE;
-        vibrate = (Vibrator) getSystemService(mapView.getContext().VIBRATOR_SERVICE);
+        long gameLength = gameLengthInMinutes * MILLIS_PER_MINUTE;        
         timer = new CountDownTimer(gameLength, 1000) {
             public void onTick(long millisUntilFinished) {
                 millisLeft = millisUntilFinished / 1000;
@@ -132,6 +132,7 @@ public class MissionMission extends MapActivity {
                 time = "Time's up!";
                 millisLeft = 0;
                 
+                vibrate = (Vibrator) getSystemService(mapView.getContext().VIBRATOR_SERVICE);
                 long rumblePattern[] = 
                     new long[] {250, 500, 250, 500, 250, 500, 250, 500, 250, 500};
                 vibrate.vibrate(rumblePattern, -1);
@@ -144,11 +145,20 @@ public class MissionMission extends MapActivity {
         //plotTestPoints();
     }
     
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+    }
     
     @Override
     protected boolean isRouteDisplayed() {
         return false;
     }
+    
+    //@Override
+    //public Object onRetainNonConfigurationInstance() {
+    //    return(null);
+    //}
     
     /**
      * Called when the map becomes the focus again after going off to
@@ -162,15 +172,6 @@ public class MissionMission extends MapActivity {
                  //Acquire the player's current location, move the game 
                  //camera and set a marker there, and send a message off 
                  //to the server.
-                 
-                 //GeoPoint playerLocation = null;
-                 //long timeOut = 1000 * 20;
-                 //long startTime = System.currentTimeMillis();
-                 //long currentTime = 0;
-                 //while ((playerLocation == null) && (currentTime < timeOut)) { 
-                 //    playerLocation = playerLocationOverlay.getMyLocation();
-                 //    currentTime = System.currentTimeMillis() - startTime;
-                 //}
                  
                  playerLocation = playerLocationOverlay.getMyLocation();
                  if (playerLocation == null) {
