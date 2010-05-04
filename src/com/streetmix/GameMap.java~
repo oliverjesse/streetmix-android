@@ -68,7 +68,7 @@ public class GameMap extends MapActivity {
     private boolean updatePoints = false;
     
     private static final int MILLIS_PER_MINUTE = 60000;
-    private static final int CAMERA_ACTION = 1;
+    private static final int CAMERA_ACTION = 0;
     private static int AREA_COLOR_MYTEAM = 0x4D0059E3;
     private static int AREA_COLOR_OPPONENT = 0x53FF0000;
     
