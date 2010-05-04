@@ -25,17 +25,18 @@ public class MissionItemizedOverlay extends ItemizedOverlay {
     private MissionMission mission;
     private float area = 0.0f;
     
-    private static int AREA_PROTESTER = 0x4D0059E3;
-    private static int AREA_CORPORATE = 0x53FF0000;
+
     
-	public MissionItemizedOverlay(Drawable defaultMarker, MissionMission mission) {
+	public MissionItemizedOverlay(
+	    Drawable defaultMarker, int overlayColor, 
+	    MissionMission mission) {
 	    //Bounds the markers' bottom's centers to the target locations.
 		super(boundCenterBottom(defaultMarker));
 		this.mission = mission;
 		
 		paint = new Paint();
 		paint.setDither(true);
-		paint.setColor(AREA_PROTESTER);
+		paint.setColor(overlayColor);
 		paint.setStyle(Paint.Style.STROKE);
 		paint.setStrokeJoin(Paint.Join.ROUND);
 		paint.setStrokeCap(Paint.Cap.ROUND);

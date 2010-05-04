@@ -45,6 +45,7 @@ public class MissionMission extends MapActivity {
     private String debug = "DEBUG";
 
     private int teamNumber = 0;
+    private int playNumber = 0;
     private int evidenceFound = 0;
     private float area = 0;
     private long millisLeft = 0;
@@ -78,7 +79,8 @@ public class MissionMission extends MapActivity {
         //Set up the messenger to send clues to the server.
         random = new Random();
         teamNumber = 29;//random.nextInt(1000);
-        messenger = new WebMessenger(teamNumber);
+        playNumber = 14;
+        messenger = new WebMessenger(teamNumber, playNumber);
         
         //Setup the map controller.
         mapController = mapView.getController();

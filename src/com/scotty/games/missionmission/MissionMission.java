@@ -1,7 +1,12 @@
 package com.scotty.games.missionmission;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -9,6 +14,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Vibrator;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -20,7 +26,7 @@ import com.google.android.maps.MapView;
 import com.google.android.maps.Overlay;
 import com.google.android.maps.OverlayItem;
 
-
+    
 
 public class MissionMission extends MapActivity {    
     private MapView mapView;
@@ -32,6 +38,7 @@ public class MissionMission extends MapActivity {
     private MissionItemizedOverlay opponentMarkerOverlay;
     
     private CountDownTimer timer;
+    private Thread networkThread;
     private Vibrator vibrate;
     private MapController mapController;
     private WebMessenger messenger;
@@ -44,7 +51,12 @@ public class MissionMission extends MapActivity {
     private String buffer = "\n\n\n";
     private String debug = "DEBUG";
 
+    //NOTE: Team IDs are indexed by the same order as their overlays 
+    //      are listed in mapOverlays.
+    private int teamIDs[];
     private int teamNumber = 0;
+    private int numberOfTeams = 0;
+    
     private int playNumber = 0;
     private int evidenceFound = 0;
     private float area = 0;
@@ -53,9 +65,12 @@ public class MissionMission extends MapActivity {
     private long seconds = 0;
     private Intent myIntent = null;
     private GeoPoint playerLocation = null;
+    private boolean updatePoints = false;
     
     private static final int MILLIS_PER_MINUTE = 60000;
     private static final int CAMERA_ACTION = 0;
+    private static int AREA_COLOR_MYTEAM = 0x4D0059E3;
+    private static int AREA_COLOR_OPPONENT = 0x53FF0000;
     
     /** Called when the activity is first created. */
     @Override
@@ -67,9 +82,16 @@ public class MissionMission extends MapActivity {
         mapView.setBuiltInZoomControls(true);
         
         mapOverlays = mapView.getOverlays();
+        
         drawable = this.getResources().getDrawable(R.drawable.arrow_blue);
-        teamMarkerOverlay = new MissionItemizedOverlay(drawable, this);
+        teamMarkerOverlay = new MissionItemizedOverlay(
+            drawable, AREA_COLOR_MYTEAM, this);
         mapOverlays.add(teamMarkerOverlay);
+        
+        drawable = this.getResources().getDrawable(R.drawable.arrow_red);
+        opponentMarkerOverlay = new MissionItemizedOverlay(
+            drawable, AREA_COLOR_OPPONENT, this);
+        mapOverlays.add(opponentMarkerOverlay);
         
         //Set up the printing for the game data.
         gameData  = (TextView) findViewById(R.id.gamedata);
@@ -78,7 +100,11 @@ public class MissionMission extends MapActivity {
         
         //Set up the messenger to send clues to the server.
         random = new Random();
-        teamNumber = 29;//random.nextInt(1000);
+        numberOfTeams = 2;
+        teamNumber = 29; //random.nextInt(1000);
+        teamIDs = new int[numberOfTeams];
+        teamIDs[0] = teamNumber;
+        teamIDs[1] = 30;
         playNumber = 14;
         messenger = new WebMessenger(teamNumber, playNumber);
         
@@ -122,6 +148,9 @@ public class MissionMission extends MapActivity {
         long gameLengthInMinutes = 20;
         long gameLength = gameLengthInMinutes * MILLIS_PER_MINUTE;        
         timer = new CountDownTimer(gameLength, 1000) {
+        	private int updatesPerServerCheck = 5;
+        	private int updatesSoFar = 0;
+        	
             public void onTick(long millisUntilFinished) {
                 millisLeft = millisUntilFinished / 1000;
                 minutes = millisLeft / 60;
@@ -130,6 +159,14 @@ public class MissionMission extends MapActivity {
                     ((seconds < 10) ? "0" + seconds : seconds);
                 
                 updateGameStats();
+                
+                if (updatesSoFar++ > updatesPerServerCheck) {
+                    //TODO: Cycle through all teams' clues.
+                	//TODO: Set flag. Have a third thread actually talk to the 
+                	//		server to keep the clock from slowing down.
+                	updatePoints = true;
+                	updatesSoFar = 0;
+                }
             }
             
             public void onFinish() {
@@ -140,10 +177,26 @@ public class MissionMission extends MapActivity {
                 long rumblePattern[] = 
                     new long[] {250, 500, 250, 500, 250, 500, 250, 500, 250, 500};
                 vibrate.vibrate(rumblePattern, -1);
-                
+
+                updatePoints = true;
                 updateGameStats();
             }
         }.start();
+        
+        networkThread = new Thread() {
+            public void run() {
+                while (true) {
+                    if (updatePoints) {
+                        for (int i = 0; i < teamIDs.length; i++) {
+                            checkCluesOnServer(i);
+                        }
+                        
+                        updatePoints = false;
+                    }
+                }
+            }
+        };
+        networkThread.start();
         
         //Plot some test points.
         //plotTestPoints();
@@ -187,7 +240,9 @@ public class MissionMission extends MapActivity {
                     new GeoPolyPoint(
                         playerLocation.getLatitudeE6(), 
                         playerLocation.getLongitudeE6());
-                 placeMarker(currentLocation);
+                 
+                 //TODO: Make this retry until server acknoledges clue.
+                 placeMarker(currentLocation, teamMarkerOverlay, true);
                  messenger.sendClue(currentLocation, "Clue #" + evidenceFound);
                  
                  debugText.setText(buffer + "Claimed!");
@@ -202,18 +257,21 @@ public class MissionMission extends MapActivity {
     	super.onResume();
     }
     
-    private void placeMarker(GeoPolyPoint point) {
+    private void placeMarker(GeoPolyPoint point, 
+        MissionItemizedOverlay overlay, boolean pointForMyTeam) {
         
         OverlayItem marker = new OverlayItem(point, 
-            "Clue " + evidenceFound, 
+            "Clue ",// + evidenceFound, 
             "Longitude = " + 
             (((float)point.getLongitudeE6())/1000000.0) + 
             "\nLatitude = " + 
             (((float)point.getLatitudeE6())/1000000.0));
+        overlay.addOverlay(marker);
         
-        evidenceFound++;
-        teamMarkerOverlay.addOverlay(marker);
-        area = teamMarkerOverlay.getArea() * 1000000.0f;
+        if (pointForMyTeam) {
+            evidenceFound++;
+            area = teamMarkerOverlay.getArea() * 1000000.0f;
+        }
     }
     
     public MapView getView() {
@@ -225,16 +283,66 @@ public class MissionMission extends MapActivity {
     	    " pieces\nArea: " + area + " units");
     }
     
+    
+    /**
+     * Checks that the clues on the server and the phone match.
+     * Clues missing on the phone are added locally.
+     */
+    public void checkCluesOnServer(int teamIDsIndex) {
+        int teamIDNumber = teamIDs[teamIDsIndex];
+        String clueInfo = messenger.getClueInfoString(teamIDNumber);
+        //Log.d("Opponent Clues", clueInfo);
+        //debugText.setText(buffer + clueInfo);
+        
+        JSONArray clueArray;
+		try {
+			clueArray = new JSONArray(clueInfo);
+		} catch (JSONException e1) {
+			Log.e("checkCluesOnServer", "ERROR: JSONException thrown.");
+			e1.printStackTrace();
+			return;
+		}
+		
+		int cluesIKnowAbout = 
+			((MissionItemizedOverlay) mapOverlays.get(teamIDsIndex)).size();
+		if (cluesIKnowAbout < clueArray.length()) {
+            for (int i = cluesIKnowAbout; i < clueArray.length(); i++) {
+                JSONObject clue, clueContents;
+                try {
+                    clue = clueArray.getJSONObject(i);
+                    Log.d("clue " + i, clue.toString());
+                    
+                    clueContents = clue.getJSONObject("clue");
+                    Log.d("clueContents " + i, clueContents.toString());
+                    
+                    GeoPolyPoint point = new GeoPolyPoint(
+                        (int) (clueContents.getDouble("lat")  * 1000000),
+                        (int) (clueContents.getDouble("long") * 1000000));
+                    placeMarker(point, 
+                        (MissionItemizedOverlay) mapOverlays.get(teamIDsIndex), 
+                        ((teamIDNumber == teamNumber) ? true : false)
+                        );
+                } catch (JSONException e) {
+                    Log.e("clue " + i, "ERROR: JSONException thrown.");
+                    e.printStackTrace();
+                }
+                
+            }
+        }
+    }
+    
+    
     /**
      * Plots some test markers down in the Mission District
      * of San Francisco.
      */
     public void plotTestPoints() {
-        placeMarker(new GeoPolyPoint(37761432, -122417135));
-        placeMarker(new GeoPolyPoint(37761788, -122419260));
-        placeMarker(new GeoPolyPoint(37758565, -122419002));
-        placeMarker(new GeoPolyPoint(37759000, -122418000));
-        placeMarker(new GeoPolyPoint(37760000, -122418000));
-        placeMarker(new GeoPolyPoint(37760000, -122421000));
+        placeMarker(new GeoPolyPoint(37761432, -122417135), teamMarkerOverlay, true);
+        placeMarker(new GeoPolyPoint(37761788, -122419260), teamMarkerOverlay, true);
+        placeMarker(new GeoPolyPoint(37758565, -122419002), teamMarkerOverlay, true);
+        placeMarker(new GeoPolyPoint(37759000, -122418000), opponentMarkerOverlay, false);
+        placeMarker(new GeoPolyPoint(37760000, -122418000), opponentMarkerOverlay, false);
+        placeMarker(new GeoPolyPoint(37760000, -122421000), opponentMarkerOverlay, false);
     }
+    
 }

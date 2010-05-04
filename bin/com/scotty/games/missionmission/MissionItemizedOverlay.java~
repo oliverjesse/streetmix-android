@@ -42,13 +42,28 @@ public class MissionItemizedOverlay extends ItemizedOverlay {
 		paint.setAntiAlias(true);
 		paint.setStyle(Paint.Style.FILL);
 		paint.setStrokeWidth(3);
+		
+		//Tell the activity to prepare the empty overlay for drawing.
+		//Will otherwise get a null pointer exception and a crash.
+		populate();
 	}
 	
 	public void addOverlay(OverlayItem overlay) {
-	    //May need to add a delay here to ensure that entire method is atomic.
+	    //May need to add a delay here to ensure that entire method is 
+	    //atomic... but probably not.
+	    
+	    
+	    GeoPolyPoint newPoint = (GeoPolyPoint) overlay.getPoint();
+	    for (int i = 0; i < mOverlays.size(); i++) {
+	        GeoPolyPoint p = (GeoPolyPoint) mOverlays.get(i).getPoint();
+	        if (newPoint.equals(p)) {
+	            newPoint.mayBeOnPath = false;
+	            break;
+	        }
+	    }
 	    
 	    mOverlays.add(overlay);
-	    if (mOverlays.size() >= 2) {
+	    if ((mOverlays.size() > 2) && (newPoint.mayBeOnPath)) {
 	        updateArea();
 	    }
 	    
@@ -59,8 +74,11 @@ public class MissionItemizedOverlay extends ItemizedOverlay {
 	
 	@Override
 	public void draw(android.graphics.Canvas canvas, MapView mapView, boolean shadow) {
-	    //drawPolygon(mOverlays, canvas, mapView);
-		drawPolygon(largestPolyList, canvas, mapView);
+	    //if (mOverlays.size() > 2) {
+	        drawPolygon(largestPolyList, canvas, mapView);
+	    //} else if (mOverlays.size() > 0) {
+	    //    drawPolygon(mOverlays, canvas, mapView);
+		//}
 	    
 		super.draw(canvas, mapView, shadow);
 	}

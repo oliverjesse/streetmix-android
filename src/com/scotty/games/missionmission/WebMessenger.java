@@ -34,17 +34,17 @@ import org.json.*;
  * Sends and receives messages from the game server.
  */
 public class WebMessenger {
-    private int teamNumber;
+    private int myTeamNumber;
     private int playNumber;
     private String url;
     private String sendCluesURL;
     private String getGameInfoURL;
     
-    public WebMessenger(int teamNumber, int playNumber) {
-        this.teamNumber = teamNumber;
+    public WebMessenger(int myTeamNumber, int playNumber) {
+        this.myTeamNumber = myTeamNumber;
         this.playNumber = playNumber;
         this.url = "http://streetmix.seedbox.info";
-        this.sendCluesURL = url + "/teams/" + teamNumber + "/clues";
+        this.sendCluesURL = url + "/teams/" + myTeamNumber + "/clues";
         this.getGameInfoURL = url + "/plays/" + playNumber + ".json";
     }
     
@@ -59,8 +59,8 @@ public class WebMessenger {
 	    try {  
 	        // Add your data  
 	        List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);  
-	        nameValuePairs.add(new BasicNameValuePair("clue[lat]", "" + ((float) point.getLatitudeE6()) * 0.000001f));  
-	        nameValuePairs.add(new BasicNameValuePair("clue[long]", "" + ((float) point.getLongitudeE6()) * 0.000001f));
+	        nameValuePairs.add(new BasicNameValuePair("clue[lat]", "" + ((float) point.getLatitudeE6())/1000000.0));  
+	        nameValuePairs.add(new BasicNameValuePair("clue[long]", "" + ((float) point.getLongitudeE6())/1000000.0));
 	        nameValuePairs.add(new BasicNameValuePair("clue[caption]", caption));
 	        //nameValuePairs.add(new BasicNameValuePair("clue[photo]", ???));
 	        httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));  
@@ -77,11 +77,17 @@ public class WebMessenger {
 	    return true;
     }
     
-    public String getClueInfoString() {
+    /**
+     * Returns an array of team TEAMNUMBER's clues from the server.
+     */
+    public String getClueInfoString(int teamNumber) {
         //TODO: Return clues.
-        return null;
+        return getFromServer(url + "/teams/" + teamNumber + "/clues.json");
     }
     
+    /**
+     * Returns general information about the game.
+     */
     public String getGameInfoString() {
         return getFromServer(getGameInfoURL);
     }
