@@ -15,7 +15,7 @@
         android:layout_width="70px"
         android:textSize="18px"
         android:layout_height="70px"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentLeft="true"
         android:layout_alignParentBottom="true">
     </Button>
     
@@ -25,13 +25,13 @@
         android:layout_width="70px"
         android:textSize="18px"
         android:layout_height="70px"
-        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
         android:layout_alignParentBottom="true">
     </Button>
     
     <TextView
         android:id="@+id/debugimagetext"
-        android:text="Claim Evidence?"
+        android:text="Save Image?"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical|center_horizontal"

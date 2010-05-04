@@ -45,6 +45,7 @@ public class MissionMission extends MapActivity {
     private String debug = "DEBUG";
 
     private int teamNumber = 0;
+    private int playNumber = 0;
     private int evidenceFound = 0;
     private float area = 0;
     private long millisLeft = 0;
@@ -77,8 +78,9 @@ public class MissionMission extends MapActivity {
         
         //Set up the messenger to send clues to the server.
         random = new Random();
-        teamNumber = random.nextInt(1000);
-        messenger = new WebMessenger(29);//teamNumber);
+        teamNumber = 29;//random.nextInt(1000);
+        playNumber = 14;
+        messenger = new WebMessenger(teamNumber, playNumber);
         
         //Setup the map controller.
         mapController = mapView.getController();
@@ -110,6 +112,8 @@ public class MissionMission extends MapActivity {
 			    myIntent = new Intent(
 			        mapView.getContext(), 
 			        com.scotty.games.missionmission.CameraPreview.class);
+			    myIntent.putExtra("teamNumber", teamNumber);
+                myIntent.putExtra("clueNumber", evidenceFound);
                 startActivityForResult(myIntent, CAMERA_ACTION);
 			}
         });
@@ -145,6 +149,10 @@ public class MissionMission extends MapActivity {
         //plotTestPoints();
     }
     
+    /**
+     * Called whenever the phone display has a cause to rotate.
+     * Ex: Phone is tilted 90 degrees or more, keyboard pulled out, etc.
+     */
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
@@ -154,11 +162,6 @@ public class MissionMission extends MapActivity {
     protected boolean isRouteDisplayed() {
         return false;
     }
-    
-    //@Override
-    //public Object onRetainNonConfigurationInstance() {
-    //    return(null);
-    //}
     
     /**
      * Called when the map becomes the focus again after going off to
@@ -200,7 +203,7 @@ public class MissionMission extends MapActivity {
     }
     
     private void placeMarker(GeoPolyPoint point) {
-        evidenceFound++;
+        
         OverlayItem marker = new OverlayItem(point, 
             "Clue " + evidenceFound, 
             "Longitude = " + 
@@ -208,6 +211,7 @@ public class MissionMission extends MapActivity {
             "\nLatitude = " + 
             (((float)point.getLatitudeE6())/1000000.0));
         
+        evidenceFound++;
         teamMarkerOverlay.addOverlay(marker);
         area = teamMarkerOverlay.getArea() * 1000000.0f;
     }

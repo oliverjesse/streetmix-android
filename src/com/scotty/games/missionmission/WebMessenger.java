@@ -1,7 +1,10 @@
 package com.scotty.games.missionmission;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.File;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,24 +27,34 @@ import org.apache.http.util.EntityUtils;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.mime.MultipartEntity;
 
+import org.json.*;
+
 
 /**
  * Sends and receives messages from the game server.
  */
 public class WebMessenger {
     private int teamNumber;
+    private int playNumber;
     private String url;
+    private String sendCluesURL;
+    private String getGameInfoURL;
     
-    public WebMessenger(int teamNumber) {
+    public WebMessenger(int teamNumber, int playNumber) {
         this.teamNumber = teamNumber;
-        this.url = "http://streetmix.seedbox.info/teams/" + 
-            teamNumber + "/clues";
+        this.playNumber = playNumber;
+        this.url = "http://streetmix.seedbox.info";
+        this.sendCluesURL = url + "/teams/" + teamNumber + "/clues";
+        this.getGameInfoURL = url + "/plays/" + playNumber + ".json";
     }
     
+    /**
+     * Posts clue information to the server.
+     */
     public boolean sendClue(GeoPolyPoint point, String caption) {
         // Create a new HttpClient and Post Header  
 	    HttpClient httpclient = new DefaultHttpClient();  
-	    HttpPost httppost = new HttpPost(url);  
+	    HttpPost httppost = new HttpPost(sendCluesURL);  
 	      
 	    try {  
 	        // Add your data  
@@ -62,5 +75,68 @@ public class WebMessenger {
 	    }
 	    
 	    return true;
-    }  
+    }
+    
+    public String getClueInfoString() {
+        //TODO: Return clues.
+        return null;
+    }
+    
+    public String getGameInfoString() {
+        return getFromServer(getGameInfoURL);
+    }
+    
+    protected String getFromServer(String url) {
+        HttpClient httpclient = new DefaultHttpClient();  
+        HttpGet httpget = new HttpGet(url);  
+        HttpResponse response = null;
+        String result = null;
+        
+        try {
+            response = httpclient.execute(httpget);
+        } catch (ClientProtocolException e) {  
+            // TODO Auto-generated catch block  
+        } catch (IOException e) {  
+            // TODO Auto-generated catch block  
+        }
+        
+        try {
+          result = convertStreamToString(response.getEntity().getContent());
+        } catch (IllegalStateException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        } catch (IOException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
+        
+        return result;
+    }
+    
+    private static String convertStreamToString(InputStream is) {  
+        /* 
+        * To convert the InputStream to String we use the BufferedReader.readLine() 
+        * method. We iterate until the BufferedReader return null which means 
+        * there's no more data to read. Each line will appended to a StringBuilder 
+        * and returned as String. 
+        */  
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));  
+        StringBuilder sb = new StringBuilder();  
+        
+        String line = null;  
+        try {  
+            while ((line = reader.readLine()) != null) {  
+                sb.append(line + "\n");  
+            }  
+        } catch (IOException e) {  
+            e.printStackTrace();  
+        } finally {  
+            try {  
+                is.close();  
+            } catch (IOException e) {  
+                e.printStackTrace();  
+            }  
+        }  
+        return sb.toString();  
+    }
 }
