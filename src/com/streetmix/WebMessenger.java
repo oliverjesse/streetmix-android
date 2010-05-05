@@ -220,8 +220,8 @@ public class WebMessenger {
 	      
 	    try {
 	        // Add your data  
-	        List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(1);  
-	        nameValuePairs.add(new BasicNameValuePair("scenarioID", "" + scenarioID));
+	        List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);  
+	        nameValuePairs.add(new BasicNameValuePair("scenario_id", "" + scenarioID));
 	        httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));  
 	      
 	        // Execute HTTP Post Request  

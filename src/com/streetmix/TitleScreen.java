@@ -39,7 +39,7 @@ public class TitleScreen extends Activity {
         joinGameButton.setOnClickListener(new ImageView.OnClickListener() {
         	@Override
 			public void onClick(View v) {
-			    debugText.setText("Not yet implemented :(");
+			    //debugText.setText("Not yet implemented :(");
 			    myIntent = new Intent(
 			        myImageView.getContext(), 
 			        com.streetmix.JoinConfig.class);

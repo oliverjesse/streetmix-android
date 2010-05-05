@@ -95,13 +95,19 @@ public class GameMap extends MapActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.map_layout);
         
+        //Set up the printing for the game data.
+        gameData  = (TextView) findViewById(R.id.gamedata);
+        debugText = (TextView) findViewById(R.id.debugtext);
+        debugText.setText(buffer + debug);
+        
         gameOptionsIntent = getIntent();
         teamAffiliation = gameOptionsIntent.getIntExtra("teamAffiliation", 0);
         opponentTeamAffiliation = 
             (teamAffiliation == GlobalData.BLUE_TEAM) ? 
             GlobalData.RED_TEAM : GlobalData.BLUE_TEAM;
         try {
-			playData = new JSONObject(gameOptionsIntent.getStringExtra("playInfo"));
+            String playDataString = gameOptionsIntent.getStringExtra("playInfo");
+			playData = new JSONObject(playDataString);
 			playData = playData.getJSONObject("play");
 			teamData = playData.getJSONArray("teams");
 			myTeamData = teamData.getJSONObject(teamAffiliation);
@@ -114,6 +120,8 @@ public class GameMap extends MapActivity {
 			teamIDs[0] = teamNumber;
 			teamIDs[1] = opponentTeamData.getInt("id");
 			playNumber = playData.getInt("id");
+			
+			debugText.setText(buffer + "Init OK!");
         } catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -127,6 +135,7 @@ public class GameMap extends MapActivity {
 			teamIDs[1] = 43;
 			playNumber = 21;
 			
+			debugText.setText(buffer + "Init BAD :(");
 		}
 		
 		redMarker = this.getResources().getDrawable(R.drawable.arrow_red);
@@ -146,11 +155,6 @@ public class GameMap extends MapActivity {
         
         
         messenger = new WebMessenger(teamNumber, playNumber);
-        
-        //Set up the printing for the game data.
-        gameData  = (TextView) findViewById(R.id.gamedata);
-        debugText = (TextView) findViewById(R.id.debugtext);
-        debugText.setText(buffer + debug);
         
         mapView = (MapView) findViewById(R.id.mapview);
         mapView.setBuiltInZoomControls(true);
