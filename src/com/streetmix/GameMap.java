@@ -54,7 +54,7 @@ public class GameMap extends MapActivity {
     private TextView gameData;
     private TextView debugText;
     private String time = "Calculating Time...";
-    private String buffer = "\n\n\n";
+    private String buffer = "\n\n\nDBG: ";
     private String debug = "DEBUG";
 
     //NOTE: Team IDs are indexed by the same order as their overlays 
@@ -121,7 +121,7 @@ public class GameMap extends MapActivity {
 			teamIDs[1] = opponentTeamData.getInt("id");
 			playNumber = playData.getInt("id");
 			
-			debugText.setText(buffer + "Init OK!");
+			debugText.setText(buffer + "Init OK, playID = " + playNumber);
         } catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

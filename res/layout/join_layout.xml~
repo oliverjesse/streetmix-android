@@ -1,7 +1,6 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent" 
-    android:layout_height="fill_parent"
-    android:orientation="vertical">
+    android:layout_height="fill_parent">
     
     <!--
     <RadioGroup
@@ -20,25 +19,14 @@
     </RadioGroup>
     -->
     
-    <TextView
-        android:id="@+id/joingame_describe_playid_edittext"
-        android:text="@string/joingame_playidfield"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content">
-    </TextView>
-    
-    <EditText
-        android:id="@+id/joingame_playid_edittext"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content" >     
-    </EditText>
-    
     <Button 
         android:id="@+id/config_startgamebutton"
         android:text="@string/titlescreen_startgamebutton"
         android:layout_width="70px"
         android:textSize="18px"
-        android:layout_height="70px">
+        android:layout_height="70px"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true">
     </Button>
     
-</LinearLayout>
+</RelativeLayout>
