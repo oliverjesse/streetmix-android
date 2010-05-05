@@ -198,12 +198,6 @@ public class WebMessenger {
 	    HttpResponse response = null;
 	    
 	    try {
-	        // Add your data  
-	        //List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(0);  
-	        //nameValuePairs.add(new BasicNameValuePair("scenarioID", "" + scenarioID));
-	        //httpget.setEntity(new UrlEncodedFormEntity(nameValuePairs));  
-	      
-	        // Execute HTTP Post Request  
 	        response = httpclient.execute(httpget);  
 	        return convertInputStreamToString(response.getEntity().getContent());
 	    } catch (ClientProtocolException e) {  
@@ -217,7 +211,7 @@ public class WebMessenger {
      * Tells the server to create a new instance of a given scenario
      * by its ID number.
      */
-    public static String startNewGame(int scenarioID) {
+    public static String startNewGame(int scenarioID, int duration) {
         // Create a new HttpClient and Post Header
         String startGameURL = "http://streetmix.seedbox.info/plays.json";
 	    HttpClient httpclient = new DefaultHttpClient();
@@ -226,12 +220,40 @@ public class WebMessenger {
 	      
 	    try {
 	        // Add your data  
-	        List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);  
+	        List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(1);  
 	        nameValuePairs.add(new BasicNameValuePair("scenarioID", "" + scenarioID));
 	        httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));  
 	      
 	        // Execute HTTP Post Request  
 	        response = httpclient.execute(httppost);  
+	        return convertInputStreamToString(response.getEntity().getContent());
+	    } catch (ClientProtocolException e) {  
+	    } catch (IOException e) {  
+	    }
+	    
+	    return null;
+    }
+    
+    /**
+     * Tells the server to create a new instance of a given scenario
+     * by its ID number.
+     */
+    public static String joinGame(int playID) {
+        // Create a new HttpClient and Post Header
+        String joinGameURL = 
+            "http://streetmix.seedbox.info/plays/" + playID + ".json";
+	    HttpClient httpclient = new DefaultHttpClient();
+	    HttpGet httpget = new HttpGet(joinGameURL);
+	    HttpResponse response = null;
+	    
+	    try {
+	        // Add your data  
+	        //List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(1);  
+	        //nameValuePairs.add(new BasicNameValuePair("scenarioID", "" + scenarioID));
+	        //httpget.setEntity(new UrlEncodedFormEntity(nameValuePairs));  
+	      
+	        // Execute HTTP Post Request  
+	        response = httpclient.execute(httpget);
 	        return convertInputStreamToString(response.getEntity().getContent());
 	    } catch (ClientProtocolException e) {  
 	    } catch (IOException e) {  

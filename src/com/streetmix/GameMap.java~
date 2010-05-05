@@ -68,7 +68,6 @@ public class GameMap extends MapActivity {
     private boolean updatePoints = false;
     
     private static final int MILLIS_PER_MINUTE = 60000;
-    private static final int CAMERA_ACTION = 1;
     private static int AREA_COLOR_MYTEAM = 0x4D0059E3;
     private static int AREA_COLOR_OPPONENT = 0x53FF0000;
     
@@ -140,7 +139,7 @@ public class GameMap extends MapActivity {
 			        com.streetmix.CameraPreview.class);
 			    myIntent.putExtra("teamNumber", teamNumber);
                 myIntent.putExtra("clueNumber", evidenceFound);
-                startActivityForResult(myIntent, CAMERA_ACTION);
+                startActivityForResult(myIntent, GlobalData.CAMERA_ACTION);
 			}
         });
         
@@ -222,7 +221,7 @@ public class GameMap extends MapActivity {
      */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-         if (requestCode == CAMERA_ACTION) { 
+         if (requestCode == GlobalData.CAMERA_ACTION) {
              
              if (resultCode == RESULT_OK) {
                  //Acquire the player's current location, move the game 

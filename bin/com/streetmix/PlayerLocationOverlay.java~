@@ -1,4 +1,4 @@
-package com.scotty.games.missionmission;
+package com.streetmix;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -35,4 +35,7 @@ public class PlayerLocationOverlay extends MyLocationOverlay {
         );
     }
     
+    //public void onLocationChanged(android.location.Location location) {
+    //    myLocation = location;
+    //}
 }

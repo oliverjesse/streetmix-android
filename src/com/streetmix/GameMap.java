@@ -31,7 +31,13 @@ import com.google.android.maps.OverlayItem;
 public class GameMap extends MapActivity {    
     private MapView mapView;
     private List<Overlay> mapOverlays;
-    private Drawable drawable;
+    
+    private Drawable redMarker;
+    private Drawable blueMarker;
+    private Drawable myMan;
+    private Drawable myMarker;
+    private Drawable opponentMarker;
+    
     private PlayerLocationOverlay playerLocationOverlay;
     private GameItemizedOverlay homeMarkerOverlay;
     private GameItemizedOverlay teamMarkerOverlay;
@@ -53,24 +59,35 @@ public class GameMap extends MapActivity {
 
     //NOTE: Team IDs are indexed by the same order as their overlays 
     //      are listed in mapOverlays.
+    private JSONObject playData = null;
+    private JSONObject myTeamData = null;
+    private JSONObject opponentTeamData = null;
+    private JSONArray teamData = null;
+    
+    private int teamAffiliation = 1;
+    private int opponentTeamAffiliation = 0;
+    
     private int teamIDs[];
     private int teamNumber = 0;
     private int numberOfTeams = 0;
+    private int myTeamColor = 0;
+    private int opponentTeamColor = 0;    
     
     private int playNumber = 0;
+    private int scenarioID = 0;
     private int evidenceFound = 0;
     private float area = 0;
     private long millisLeft = 0;
     private long minutes = 20;
     private long seconds = 0;
+    private Intent gameOptionsIntent;
     private Intent myIntent = null;
     private GeoPoint playerLocation = null;
     private boolean updatePoints = false;
     
     private static final int MILLIS_PER_MINUTE = 60000;
-    private static final int CAMERA_ACTION = 1;
-    private static int AREA_COLOR_MYTEAM = 0x4D0059E3;
-    private static int AREA_COLOR_OPPONENT = 0x53FF0000;
+    private static int AREA_COLOR_BLUETEAM = 0x4D0059E3;
+    private static int AREA_COLOR_REDTEAM = 0x53FF0000;
     
     /** Called when the activity is first created. */
     @Override
@@ -78,41 +95,83 @@ public class GameMap extends MapActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.map_layout);
         
-        mapView = (MapView) findViewById(R.id.mapview);
-        mapView.setBuiltInZoomControls(true);
+        gameOptionsIntent = getIntent();
+        teamAffiliation = gameOptionsIntent.getIntExtra("teamAffiliation", 0);
+        opponentTeamAffiliation = 
+            (teamAffiliation == GlobalData.BLUE_TEAM) ? 
+            GlobalData.RED_TEAM : GlobalData.BLUE_TEAM;
+        try {
+			playData = new JSONObject(gameOptionsIntent.getStringExtra("playInfo"));
+			playData = playData.getJSONObject("play");
+			teamData = playData.getJSONArray("teams");
+			myTeamData = teamData.getJSONObject(teamAffiliation);
+			opponentTeamData = teamData.getJSONObject(opponentTeamAffiliation);
+			
+			//Set up the messenger to send clues to the server
+			numberOfTeams = 2;
+			teamNumber = myTeamData.getInt("id");
+			teamIDs = new int[numberOfTeams];
+			teamIDs[0] = teamNumber;
+			teamIDs[1] = opponentTeamData.getInt("id");
+			playNumber = playData.getInt("id");
+        } catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			
+			//Set up the messenger to send clues to the server.
+			random = new Random();
+			numberOfTeams = 2;
+			teamNumber = 44; //random.nextInt(1000);
+			teamIDs = new int[numberOfTeams];
+			teamIDs[0] = teamNumber;
+			teamIDs[1] = 43;
+			playNumber = 21;
+			
+		}
+		
+		redMarker = this.getResources().getDrawable(R.drawable.arrow_red);
+		blueMarker = this.getResources().getDrawable(R.drawable.arrow_blue);
+		
+		if (teamAffiliation == GlobalData.BLUE_TEAM) {
+			myTeamColor = AREA_COLOR_BLUETEAM;
+			opponentTeamColor = AREA_COLOR_REDTEAM;
+			myMarker = blueMarker;
+			opponentMarker = redMarker;
+		} else {
+			myTeamColor = AREA_COLOR_REDTEAM;
+			opponentTeamColor = AREA_COLOR_BLUETEAM;
+			myMarker = redMarker;
+			opponentMarker = blueMarker;
+		}
         
-        mapOverlays = mapView.getOverlays();
         
-        drawable = this.getResources().getDrawable(R.drawable.arrow_blue);
-        teamMarkerOverlay = new GameItemizedOverlay(
-            drawable, AREA_COLOR_MYTEAM, this);
-        mapOverlays.add(teamMarkerOverlay);
-        
-        drawable = this.getResources().getDrawable(R.drawable.arrow_red);
-        opponentMarkerOverlay = new GameItemizedOverlay(
-            drawable, AREA_COLOR_OPPONENT, this);
-        mapOverlays.add(opponentMarkerOverlay);
+        messenger = new WebMessenger(teamNumber, playNumber);
         
         //Set up the printing for the game data.
         gameData  = (TextView) findViewById(R.id.gamedata);
         debugText = (TextView) findViewById(R.id.debugtext);
         debugText.setText(buffer + debug);
         
-        //Set up the messenger to send clues to the server.
-        random = new Random();
-        numberOfTeams = 2;
-        teamNumber = 44; //random.nextInt(1000);
-        teamIDs = new int[numberOfTeams];
-        teamIDs[0] = teamNumber;
-        teamIDs[1] = 43;
-        playNumber = 21;
-        messenger = new WebMessenger(teamNumber, playNumber);
+        mapView = (MapView) findViewById(R.id.mapview);
+        mapView.setBuiltInZoomControls(true);
+        
+        mapOverlays = mapView.getOverlays();
+        
+        teamMarkerOverlay = new GameItemizedOverlay(
+            myMarker, myTeamColor, this);
+        mapOverlays.add(teamMarkerOverlay);
+        
+        opponentMarkerOverlay = new GameItemizedOverlay(
+            opponentMarker, opponentTeamColor, this);
+        mapOverlays.add(opponentMarkerOverlay);
+        
+        
         
         //Setup the map controller.
         mapController = mapView.getController();
         
         //Setup a player location listener.
-        playerLocationOverlay = new PlayerLocationOverlay(this, mapView);
+        playerLocationOverlay = new PlayerLocationOverlay(this, mapView, teamAffiliation);
         mapOverlays.add(playerLocationOverlay);
         playerLocationOverlay.enableCompass();
         playerLocationOverlay.enableMyLocation();
@@ -140,7 +199,7 @@ public class GameMap extends MapActivity {
 			        com.streetmix.CameraPreview.class);
 			    myIntent.putExtra("teamNumber", teamNumber);
                 myIntent.putExtra("clueNumber", evidenceFound);
-                startActivityForResult(myIntent, CAMERA_ACTION);
+                startActivityForResult(myIntent, GlobalData.CAMERA_ACTION);
 			}
         });
         
@@ -222,7 +281,7 @@ public class GameMap extends MapActivity {
      */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-         if (requestCode == CAMERA_ACTION) {
+         if (requestCode == GlobalData.CAMERA_ACTION) {
              
              if (resultCode == RESULT_OK) {
                  //Acquire the player's current location, move the game 
