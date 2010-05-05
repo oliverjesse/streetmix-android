@@ -16,6 +16,8 @@ public class TitleScreen extends Activity {
     private Intent myIntent;
     
     private static final int MAP_ACTION = 1;
+    private static final int NEWGAME_ACTION = 2;
+    
     
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -31,7 +33,7 @@ public class TitleScreen extends Activity {
 			public void onClick(View v) {
 			    myIntent = new Intent(
 			        myImageView.getContext(), 
-			        com.streetmix.GameMap.class);
+			        com.streetmix.AvailableScenarioList.class);
 			    //myIntent.putExtra("teamNumber", teamNumber);
                 //myIntent.putExtra("clueNumber", evidenceFound);
                 startActivityForResult(myIntent, MAP_ACTION);
@@ -46,6 +48,19 @@ public class TitleScreen extends Activity {
 			}
         });
         
+    }
+    
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == NEWGAME_ACTION) {
+            if (resultCode == RESULT_OK) {
+                myIntent = new Intent(
+                myImageView.getContext(), 
+                    com.streetmix.GameMap.class);
+                //myIntent.putExtra("clueNumber", evidenceFound);
+                startActivityForResult(myIntent, MAP_ACTION);
+            }
+        }
     }
     
 }

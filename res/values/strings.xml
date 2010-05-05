@@ -3,5 +3,6 @@
     <string name="hello">Hello World, stREetMIX!</string>
     <string name="app_name">stREetMIX</string>
     <string name="titlescreen_startgamebutton">Start Game</string>
-    <string name="titlescreen_joingamebutton">Join Game</string>    
+    <string name="titlescreen_joingamebutton">Join Game</string>
+    <string name="available_scenario_list_title">Pick a scenario to play.</string>
 </resources>

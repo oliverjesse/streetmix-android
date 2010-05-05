@@ -101,11 +101,11 @@ public class GameMap extends MapActivity {
         //Set up the messenger to send clues to the server.
         random = new Random();
         numberOfTeams = 2;
-        teamNumber = 29; //random.nextInt(1000);
+        teamNumber = 44; //random.nextInt(1000);
         teamIDs = new int[numberOfTeams];
         teamIDs[0] = teamNumber;
-        teamIDs[1] = 30;
-        playNumber = 14;
+        teamIDs[1] = 43;
+        playNumber = 21;
         messenger = new WebMessenger(teamNumber, playNumber);
         
         //Setup the map controller.
@@ -148,7 +148,7 @@ public class GameMap extends MapActivity {
         long gameLengthInMinutes = 20;
         long gameLength = gameLengthInMinutes * MILLIS_PER_MINUTE;        
         timer = new CountDownTimer(gameLength, 1000) {
-        	private int updatesPerServerCheck = 5;
+        	private int updatesPerServerCheck = 10;
         	private int updatesSoFar = 0;
         	
             public void onTick(long millisUntilFinished) {
@@ -161,9 +161,6 @@ public class GameMap extends MapActivity {
                 updateGameStats();
                 
                 if (updatesSoFar++ > updatesPerServerCheck) {
-                    //TODO: Cycle through all teams' clues.
-                	//TODO: Set flag. Have a third thread actually talk to the 
-                	//		server to keep the clock from slowing down.
                 	updatePoints = true;
                 	updatesSoFar = 0;
                 }
@@ -205,6 +202,9 @@ public class GameMap extends MapActivity {
     /**
      * Called whenever the phone display has a cause to rotate.
      * Ex: Phone is tilted 90 degrees or more, keyboard pulled out, etc.
+     * This does nothing except keep the phone from automatically
+     * calling the onCreate() function everytime you shake the
+     * device and resetting the whole bloody game.
      */
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
@@ -242,8 +242,14 @@ public class GameMap extends MapActivity {
                         playerLocation.getLongitudeE6());
                  
                  //TODO: Make this retry until server acknoledges clue.
-                 placeMarker(currentLocation, teamMarkerOverlay, true);
-                 messenger.sendClue(currentLocation, "Clue #" + evidenceFound);
+                 //TODO: Send the picture instead of the filename since 
+                 //      the pictures are no longer stored locally on
+                 //      the phones.
+                 //placeMarker(currentLocation, teamMarkerOverlay, true);
+                 messenger.sendClue(
+                     currentLocation, 
+                     "Clue #" + evidenceFound,
+                     "/sdcard/dcim/Camera/streetmix_clue.jpg");
                  
                  debugText.setText(buffer + "Claimed!");
              } else {

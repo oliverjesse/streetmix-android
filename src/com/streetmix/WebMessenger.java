@@ -189,6 +189,31 @@ public class WebMessenger {
     }
     
     /**
+     * Returns a list of the possible scenarios from the website.
+     */
+    public static String getScenarioList() {
+        String startGameURL = "http://streetmix.seedbox.info/scenarios.json";
+	    HttpClient httpclient = new DefaultHttpClient();
+	    HttpGet httpget = new HttpGet(startGameURL);
+	    HttpResponse response = null;
+	    
+	    try {
+	        // Add your data  
+	        //List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(0);  
+	        //nameValuePairs.add(new BasicNameValuePair("scenarioID", "" + scenarioID));
+	        //httpget.setEntity(new UrlEncodedFormEntity(nameValuePairs));  
+	      
+	        // Execute HTTP Post Request  
+	        response = httpclient.execute(httpget);  
+	        return convertInputStreamToString(response.getEntity().getContent());
+	    } catch (ClientProtocolException e) {  
+	    } catch (IOException e) {  
+	    }
+	    
+	    return null;
+    }
+    
+    /**
      * Tells the server to create a new instance of a given scenario
      * by its ID number.
      */

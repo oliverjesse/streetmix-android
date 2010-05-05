@@ -1,6 +1,9 @@
 package com.streetmix;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.File;
 import java.io.InputStream;
@@ -26,6 +29,9 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.util.EntityUtils;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.entity.mime.content.InputStreamBody;
+import org.apache.http.entity.mime.content.StringBody;
 
 import org.json.*;
 
@@ -38,36 +44,66 @@ public class WebMessenger {
     private int playNumber;
     private String url;
     private String sendCluesURL;
+    private String sendPhotosURL;
     private String getGameInfoURL;
     
     public WebMessenger(int myTeamNumber, int playNumber) {
         this.myTeamNumber = myTeamNumber;
         this.playNumber = playNumber;
         this.url = "http://streetmix.seedbox.info";
-        this.sendCluesURL = url + "/teams/" + myTeamNumber + "/clues";
+        this.sendCluesURL = url + "/teams/" + myTeamNumber + "/clues.json";
+        this.sendPhotosURL = url + "/teams/" + myTeamNumber + "/clues/";
         this.getGameInfoURL = url + "/plays/" + playNumber + ".json";
     }
     
     /**
      * Posts clue information to the server.
      */
-    public String sendClue(GeoPolyPoint point, String caption) {
+    public String sendClue(GeoPolyPoint point, String caption, String pictureFilename) {
         // Create a new HttpClient and Post Header  
 	    HttpClient httpclient = new DefaultHttpClient();  
-	    HttpPost httppost = new HttpPost(sendCluesURL);  
+	    HttpPost httppost  = new HttpPost(sendCluesURL);
 	      
 	    try {  
-	        // Add your data  
+	        // Send the clue.
 	        List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);  
 	        nameValuePairs.add(new BasicNameValuePair("clue[lat]", "" + ((float) point.getLatitudeE6())/1000000.0));  
 	        nameValuePairs.add(new BasicNameValuePair("clue[long]", "" + ((float) point.getLongitudeE6())/1000000.0));
 	        nameValuePairs.add(new BasicNameValuePair("clue[caption]", caption));
-	        //nameValuePairs.add(new BasicNameValuePair("clue[photo]", ???));
 	        httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));  
-	      
+	        HttpResponse response = httpclient.execute(httppost);
+	        
+	        //Update the clue to include the most recently taken photo.
+	        JSONObject clue = null;
+	        JSONObject clueContents = null;
+			try {
+				clue = new JSONObject(convertInputStreamToString(response.getEntity().getContent()));
+				clueContents = clue.getJSONObject("clue");				
+			} catch (IllegalStateException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return null;
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return null;
+			}
+
+			HttpPut photoPost = null;
+			try {
+				photoPost = new HttpPut(sendPhotosURL + clueContents.getInt("id") + ".json");
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return null;
+			}
+			MultipartEntity nameValuePairsPhotos = new MultipartEntity();
+            nameValuePairsPhotos.addPart("clue[photo]", new FileBody(new File(pictureFilename)));
+	        photoPost.setEntity(nameValuePairsPhotos);
+	        
 	        // Execute HTTP Post Request  
-	        HttpResponse response = httpclient.execute(httppost);  
-	        return convertStreamToString(response.getEntity().getContent());
+	        HttpResponse responsePhoto = httpclient.execute(photoPost);  
+	        return convertInputStreamToString(responsePhoto.getEntity().getContent());
 	    } catch (ClientProtocolException e) { 
 	    } catch (IOException e) {  
 	    }
@@ -79,7 +115,6 @@ public class WebMessenger {
      * Returns an array of team TEAMNUMBER's clues from the server.
      */
     public String getClueInfoString(int teamNumber) {
-        //TODO: Return clues.
         return getFromServer(url + "/teams/" + teamNumber + "/clues.json");
     }
     
@@ -105,7 +140,7 @@ public class WebMessenger {
         }
         
         try {
-          result = convertStreamToString(response.getEntity().getContent());
+          result = convertInputStreamToString(response.getEntity().getContent());
         } catch (IllegalStateException e) {
           // TODO Auto-generated catch block
           e.printStackTrace();
@@ -117,14 +152,23 @@ public class WebMessenger {
         return result;
     }
     
-    private static String convertStreamToString(InputStream is) {  
+    private static String convertInputStreamToString(InputStream is) {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+        return convertStreamToString(reader);
+    }
+    
+    private static String convertFileReaderToString(FileReader fr) {
+        BufferedReader reader = new BufferedReader(fr);
+        return convertStreamToString(reader);
+    }    
+    
+    private static String convertStreamToString(BufferedReader reader) {  
         /* 
         * To convert the InputStream to String we use the BufferedReader.readLine() 
         * method. We iterate until the BufferedReader return null which means 
         * there's no more data to read. Each line will appended to a StringBuilder 
         * and returned as String. 
         */  
-        BufferedReader reader = new BufferedReader(new InputStreamReader(is));  
         StringBuilder sb = new StringBuilder();  
         
         String line = null;  
@@ -135,11 +179,11 @@ public class WebMessenger {
         } catch (IOException e) {  
             e.printStackTrace();  
         } finally {  
-            try {  
-                is.close();  
-            } catch (IOException e) {  
-                e.printStackTrace();  
-            }  
+            //try {  
+            //    is.close();  
+            //} catch (IOException e) {  
+            //    e.printStackTrace();  
+            //}  
         }  
         return sb.toString();  
     }
@@ -163,7 +207,7 @@ public class WebMessenger {
 	      
 	        // Execute HTTP Post Request  
 	        response = httpclient.execute(httppost);  
-	        return convertStreamToString(response.getEntity().getContent());
+	        return convertInputStreamToString(response.getEntity().getContent());
 	    } catch (ClientProtocolException e) {  
 	    } catch (IOException e) {  
 	    }

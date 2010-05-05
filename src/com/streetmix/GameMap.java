@@ -148,7 +148,7 @@ public class GameMap extends MapActivity {
         long gameLengthInMinutes = 20;
         long gameLength = gameLengthInMinutes * MILLIS_PER_MINUTE;        
         timer = new CountDownTimer(gameLength, 1000) {
-        	private int updatesPerServerCheck = 5;
+        	private int updatesPerServerCheck = 10;
         	private int updatesSoFar = 0;
         	
             public void onTick(long millisUntilFinished) {
@@ -161,9 +161,6 @@ public class GameMap extends MapActivity {
                 updateGameStats();
                 
                 if (updatesSoFar++ > updatesPerServerCheck) {
-                    //TODO: Cycle through all teams' clues.
-                	//TODO: Set flag. Have a third thread actually talk to the 
-                	//		server to keep the clock from slowing down.
                 	updatePoints = true;
                 	updatesSoFar = 0;
                 }
@@ -225,7 +222,7 @@ public class GameMap extends MapActivity {
      */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-         if (requestCode == CAMERA_ACTION) { 
+         if (requestCode == CAMERA_ACTION) {
              
              if (resultCode == RESULT_OK) {
                  //Acquire the player's current location, move the game 
@@ -245,7 +242,10 @@ public class GameMap extends MapActivity {
                         playerLocation.getLongitudeE6());
                  
                  //TODO: Make this retry until server acknoledges clue.
-                 placeMarker(currentLocation, teamMarkerOverlay, true);
+                 //TODO: Send the picture instead of the filename since 
+                 //      the pictures are no longer stored locally on
+                 //      the phones.
+                 //placeMarker(currentLocation, teamMarkerOverlay, true);
                  messenger.sendClue(
                      currentLocation, 
                      "Clue #" + evidenceFound,
