@@ -1,4 +1,4 @@
-package com.scotty.games.missionmission;
+package com.streetmix;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -34,24 +34,24 @@ import org.json.*;
  * Sends and receives messages from the game server.
  */
 public class WebMessenger {
-    private int teamNumber;
+    private int myTeamNumber;
     private int playNumber;
     private String url;
     private String sendCluesURL;
     private String getGameInfoURL;
     
-    public WebMessenger(int teamNumber, int playNumber) {
-        this.teamNumber = teamNumber;
+    public WebMessenger(int myTeamNumber, int playNumber) {
+        this.myTeamNumber = myTeamNumber;
         this.playNumber = playNumber;
         this.url = "http://streetmix.seedbox.info";
-        this.sendCluesURL = url + "/teams/" + teamNumber + "/clues";
+        this.sendCluesURL = url + "/teams/" + myTeamNumber + "/clues";
         this.getGameInfoURL = url + "/plays/" + playNumber + ".json";
     }
     
     /**
      * Posts clue information to the server.
      */
-    public boolean sendClue(GeoPolyPoint point, String caption) {
+    public String sendClue(GeoPolyPoint point, String caption) {
         // Create a new HttpClient and Post Header  
 	    HttpClient httpclient = new DefaultHttpClient();  
 	    HttpPost httppost = new HttpPost(sendCluesURL);  
@@ -59,29 +59,33 @@ public class WebMessenger {
 	    try {  
 	        // Add your data  
 	        List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);  
-	        nameValuePairs.add(new BasicNameValuePair("clue[lat]", "" + ((float) point.getLatitudeE6()) * 0.000001f));  
-	        nameValuePairs.add(new BasicNameValuePair("clue[long]", "" + ((float) point.getLongitudeE6()) * 0.000001f));
+	        nameValuePairs.add(new BasicNameValuePair("clue[lat]", "" + ((float) point.getLatitudeE6())/1000000.0));  
+	        nameValuePairs.add(new BasicNameValuePair("clue[long]", "" + ((float) point.getLongitudeE6())/1000000.0));
 	        nameValuePairs.add(new BasicNameValuePair("clue[caption]", caption));
 	        //nameValuePairs.add(new BasicNameValuePair("clue[photo]", ???));
 	        httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));  
 	      
 	        // Execute HTTP Post Request  
 	        HttpResponse response = httpclient.execute(httppost);  
-	        
-	    } catch (ClientProtocolException e) {  
-	        return false;
+	        return convertStreamToString(response.getEntity().getContent());
+	    } catch (ClientProtocolException e) { 
 	    } catch (IOException e) {  
-	        return false;
 	    }
 	    
-	    return true;
+	    return null;
     }
     
-    public String getClueInfoString() {
+    /**
+     * Returns an array of team TEAMNUMBER's clues from the server.
+     */
+    public String getClueInfoString(int teamNumber) {
         //TODO: Return clues.
-        return null;
+        return getFromServer(url + "/teams/" + teamNumber + "/clues.json");
     }
     
+    /**
+     * Returns general information about the game.
+     */
     public String getGameInfoString() {
         return getFromServer(getGameInfoURL);
     }
@@ -138,5 +142,32 @@ public class WebMessenger {
             }  
         }  
         return sb.toString();  
+    }
+    
+    /**
+     * Tells the server to create a new instance of a given scenario
+     * by its ID number.
+     */
+    public static String startNewGame(int scenarioID) {
+        // Create a new HttpClient and Post Header
+        String startGameURL = "http://streetmix.seedbox.info/plays.json";
+	    HttpClient httpclient = new DefaultHttpClient();
+	    HttpPost httppost = new HttpPost(startGameURL);
+	    HttpResponse response = null;
+	      
+	    try {
+	        // Add your data  
+	        List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);  
+	        nameValuePairs.add(new BasicNameValuePair("scenarioID", "" + scenarioID));
+	        httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));  
+	      
+	        // Execute HTTP Post Request  
+	        response = httpclient.execute(httppost);  
+	        return convertStreamToString(response.getEntity().getContent());
+	    } catch (ClientProtocolException e) {  
+	    } catch (IOException e) {  
+	    }
+	    
+	    return null;
     }
 }

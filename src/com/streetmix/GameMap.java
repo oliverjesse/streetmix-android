@@ -101,11 +101,11 @@ public class GameMap extends MapActivity {
         //Set up the messenger to send clues to the server.
         random = new Random();
         numberOfTeams = 2;
-        teamNumber = 29; //random.nextInt(1000);
+        teamNumber = 44; //random.nextInt(1000);
         teamIDs = new int[numberOfTeams];
         teamIDs[0] = teamNumber;
-        teamIDs[1] = 30;
-        playNumber = 14;
+        teamIDs[1] = 43;
+        playNumber = 21;
         messenger = new WebMessenger(teamNumber, playNumber);
         
         //Setup the map controller.
@@ -205,6 +205,9 @@ public class GameMap extends MapActivity {
     /**
      * Called whenever the phone display has a cause to rotate.
      * Ex: Phone is tilted 90 degrees or more, keyboard pulled out, etc.
+     * This does nothing except keep the phone from automatically
+     * calling the onCreate() function everytime you shake the
+     * device and resetting the whole bloody game.
      */
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
@@ -243,7 +246,10 @@ public class GameMap extends MapActivity {
                  
                  //TODO: Make this retry until server acknoledges clue.
                  placeMarker(currentLocation, teamMarkerOverlay, true);
-                 messenger.sendClue(currentLocation, "Clue #" + evidenceFound);
+                 messenger.sendClue(
+                     currentLocation, 
+                     "Clue #" + evidenceFound,
+                     "/sdcard/dcim/Camera/streetmix_clue.jpg");
                  
                  debugText.setText(buffer + "Claimed!");
              } else {

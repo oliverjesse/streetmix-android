@@ -5,6 +5,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.hardware.Camera;
@@ -177,7 +178,7 @@ public class CameraPreview extends Activity implements SurfaceHolder.Callback {
                         }
                 });
             }  
-        };  
+        };
         
         mShutterCallback = new Camera.ShutterCallback() {  
             public void onShutter() {  
@@ -229,6 +230,13 @@ public class CameraPreview extends Activity implements SurfaceHolder.Callback {
         
     }
     
+    /**
+     * Called to keep the device from resetting on a rotate.
+     */
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+    }
     
     public void surfaceCreated(SurfaceHolder holder) {
         // The Surface has been created, acquire the camera and tell it 
@@ -290,7 +298,8 @@ public class CameraPreview extends Activity implements SurfaceHolder.Callback {
         filename = "streetmix_clues_" + 
             "team_"  + getZeroes(teamNumber) + teamNumber + 
             "_clue_" + getZeroes(clueNumber) + clueNumber + ".jpg";
-            //timeStampFormat.format(new Date());  
+        
+        filename = "streetmix_clue.jpg";
     }
     
     private String getZeroes(int num) {
