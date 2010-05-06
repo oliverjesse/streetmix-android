@@ -13,6 +13,7 @@ public class TitleScreen extends Activity {
     private ImageView myImageView;
     private Button startGameButton;
     private Button joinGameButton;
+    private Button continueGameButton;
     private TextView debugText;
     private Intent myIntent;
     
@@ -47,6 +48,12 @@ public class TitleScreen extends Activity {
 			}
         });
         
+        continueGameButton = (Button) findViewById(R.id.continuegamebutton);
+        continueGameButton.setOnClickListener(new ImageView.OnClickListener() {
+        	@Override
+			public void onClick(View v) {
+			}
+        });
     }
     
     @Override
@@ -61,8 +68,10 @@ public class TitleScreen extends Activity {
                 int scenarioID = data.getIntExtra("scenarioID", 0);
                 int duration = data.getIntExtra("duration", 0);
                 int teamAffiliation = data.getIntExtra("teamAffiliation", 0);
+                String instanceName = data.getStringExtra("instanceName");
                 
-                String playInfo = WebMessenger.startNewGame(scenarioID, duration);
+                String playInfo = WebMessenger.startNewGame(
+                    scenarioID, duration, instanceName);
                 
                 myIntent.putExtra("scenarioID", scenarioID);
                 myIntent.putExtra("duration", duration);

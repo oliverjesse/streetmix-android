@@ -211,7 +211,7 @@ public class WebMessenger {
      * Tells the server to create a new instance of a given scenario
      * by its ID number.
      */
-    public static String startNewGame(int scenarioID, int duration) {
+    public static String startNewGame(int scenarioID, int duration, String instanceName) {
         // Create a new HttpClient and Post Header
         String startGameURL = "http://streetmix.seedbox.info/plays.json";
 	    HttpClient httpclient = new DefaultHttpClient();

@@ -30,8 +30,8 @@ public class TitleScreen extends Activity {
 			public void onClick(View v) {
 			    myIntent = new Intent(
 			        myImageView.getContext(), 
-			        com.streetmix.GameMap.class);
-                startActivityForResult(myIntent, GlobalData.MAP_ACTION);
+			        com.streetmix.AvailableScenarioList.class);
+                startActivityForResult(myIntent, GlobalData.NEWGAME_ACTION);
 			}
         });
         
@@ -39,7 +39,11 @@ public class TitleScreen extends Activity {
         joinGameButton.setOnClickListener(new ImageView.OnClickListener() {
         	@Override
 			public void onClick(View v) {
-			    debugText.setText("Not yet implemented :(");
+			    //debugText.setText("Not yet implemented :(");
+			    myIntent = new Intent(
+			        myImageView.getContext(), 
+			        com.streetmix.JoinConfig.class);
+                startActivityForResult(myIntent, GlobalData.JOINGAME_ACTION);
 			}
         });
         
@@ -47,14 +51,52 @@ public class TitleScreen extends Activity {
     
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == GlobalData.NEWGAME_ACTION) {
+        switch (requestCode) {
+        case GlobalData.NEWGAME_ACTION:
             if (resultCode == RESULT_OK) {
                 myIntent = new Intent(
-                myImageView.getContext(), 
+                    myImageView.getContext(), 
                     com.streetmix.GameMap.class);
-                //myIntent.putExtra("clueNumber", evidenceFound);
+                
+                int scenarioID = data.getIntExtra("scenarioID", 0);
+                int duration = data.getIntExtra("duration", 0);
+                int teamAffiliation = data.getIntExtra("teamAffiliation", 0);
+                String instanceName = data.getStringExtra("instanceName");
+                
+                String playInfo = WebMessenger.startNewGame(
+                    scenarioID, duration, instanceName);
+                
+                myIntent.putExtra("scenarioID", scenarioID);
+                myIntent.putExtra("duration", duration);
+                myIntent.putExtra("teamAffiliation", teamAffiliation);
+                myIntent.putExtra("playInfo", playInfo);
+                
                 startActivityForResult(myIntent, GlobalData.MAP_ACTION);
             }
+            break;
+        case GlobalData.JOINGAME_ACTION:
+            if (resultCode == RESULT_OK) {
+                myIntent = new Intent(
+                    myImageView.getContext(), 
+                    com.streetmix.GameMap.class);
+                
+                int scenarioID = data.getIntExtra("scenarioID", 0);
+                int duration = data.getIntExtra("duration", 0);
+                int teamAffiliation = data.getIntExtra("teamAffiliation", 0);
+                int playID = data.getIntExtra("playID", 0);
+
+                String playInfo = WebMessenger.joinGame(playID);
+                
+                myIntent.putExtra("scenarioID", scenarioID);
+                myIntent.putExtra("duration", duration);
+                myIntent.putExtra("teamAffiliation", teamAffiliation);
+                myIntent.putExtra("playInfo", playInfo);
+                
+                startActivityForResult(myIntent, GlobalData.MAP_ACTION);
+            }
+            break;
+        default:
+            break;
         }
     }
     

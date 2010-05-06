@@ -3,22 +3,26 @@
     android:layout_height="fill_parent"
     android:orientation="vertical">
     
-    <!--
+    <TextView
+        android:id="@+id/pickateam_text"
+        android:text="@string/pickateam_text"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content">
+    </TextView>
+    
     <RadioGroup
+        android:id="@+id/team_affiliation_menu"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:checkedButton="@+id/blue_team"
-        android:id="@+id/team_affiliation_menu">
+        android:checkedButton="@+id/blue_team">
         <RadioButton
-            android:text="@string/team_affiliation_blue"
             android:id="@+id/blue_team"
-            />
+            android:text="@string/blue_team" />
         <RadioButton
-            android:text="@string/team_affiliation_red"
-            android:id="@id/red_team" />
+            android:id="@+id/red_team"
+            android:text="@string/red_team" />
     </RadioGroup>
-    -->
     
     <TextView
         android:id="@+id/joingame_describe_playid_edittext"
@@ -35,7 +39,7 @@
     
     <Button 
         android:id="@+id/config_startgamebutton"
-        android:text="@string/titlescreen_startgamebutton"
+        android:text="@string/startgamebutton"
         android:layout_width="70px"
         android:textSize="18px"
         android:layout_height="70px">

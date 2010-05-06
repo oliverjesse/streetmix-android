@@ -22,26 +22,31 @@ public final class R {
         public static final int title_screen=0x7f020008;
     }
     public static final class id {
-        public static final int cameraViewButton=0x7f05000d;
-        public static final int captured_image=0x7f050005;
-        public static final int config_startgamebutton=0x7f050004;
-        public static final int debugimagetext=0x7f050008;
+        public static final int blue_team=0x7f050007;
+        public static final int cameraViewButton=0x7f050012;
+        public static final int captured_image=0x7f05000a;
+        public static final int config_startgamebutton=0x7f050009;
+        public static final int continuegamebutton=0x7f050015;
+        public static final int debugimagetext=0x7f05000d;
         public static final int debugtext=0x7f050003;
-        public static final int gamedata=0x7f05000e;
-        public static final int joingame_describe_playid_edittext=0x7f050009;
-        public static final int joingame_playid_edittext=0x7f05000a;
-        public static final int joingamebutton=0x7f050011;
-        public static final int mainlayout=0x7f05000b;
+        public static final int gamedata=0x7f050013;
+        public static final int joingame_describe_playid_edittext=0x7f05000e;
+        public static final int joingame_playid_edittext=0x7f05000f;
+        public static final int joingamebutton=0x7f050016;
+        public static final int mainlayout=0x7f050010;
         public static final int mapViewButton=0x7f050001;
-        public static final int mapview=0x7f05000c;
-        public static final int nobutton=0x7f050007;
-        public static final int playvalue=0x7f050010;
-        public static final int startgamebutton=0x7f050012;
+        public static final int mapview=0x7f050011;
+        public static final int nobutton=0x7f05000c;
+        public static final int pickateam_text=0x7f050005;
+        public static final int red_team=0x7f050008;
+        public static final int scenario_description_text=0x7f050004;
+        public static final int startgamebutton=0x7f050017;
         public static final int surface_camera=0x7f050000;
         public static final int takePictureButton=0x7f050002;
-        public static final int titlescreen_debugtext=0x7f050013;
-        public static final int titlescreen_image=0x7f05000f;
-        public static final int yesbutton=0x7f050006;
+        public static final int team_affiliation_menu=0x7f050006;
+        public static final int titlescreen_debugtext=0x7f050018;
+        public static final int titlescreen_image=0x7f050014;
+        public static final int yesbutton=0x7f05000b;
     }
     public static final class layout {
         public static final int camera_layout=0x7f030000;
@@ -53,10 +58,15 @@ public final class R {
     }
     public static final class string {
         public static final int app_name=0x7f040001;
-        public static final int available_scenario_list_title=0x7f040004;
+        public static final int available_scenario_list_title=0x7f040005;
+        public static final int blue_team=0x7f040009;
+        public static final int continuegamebutton=0x7f040004;
         public static final int hello=0x7f040000;
-        public static final int joingame_playidfield=0x7f040005;
-        public static final int titlescreen_joingamebutton=0x7f040003;
-        public static final int titlescreen_startgamebutton=0x7f040002;
+        public static final int joingame_playidfield=0x7f040007;
+        public static final int joingamebutton=0x7f040003;
+        public static final int pickateam_text=0x7f040008;
+        public static final int red_team=0x7f04000a;
+        public static final int scenario_description_text=0x7f040006;
+        public static final int startgamebutton=0x7f040002;
     }
 }

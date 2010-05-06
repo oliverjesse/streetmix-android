@@ -121,7 +121,8 @@ public class GameMap extends MapActivity {
 			teamIDs[1] = opponentTeamData.getInt("id");
 			playNumber = playData.getInt("id");
 			
-			debugText.setText(buffer + "Init OK, playID = " + playNumber);
+			buffer = buffer + "PlayID=" + playNumber + ": ";
+			debugText.setText(buffer + "Init OK");
         } catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

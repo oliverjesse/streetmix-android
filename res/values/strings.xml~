@@ -5,4 +5,5 @@
     <string name="titlescreen_startgamebutton">Start Game</string>
     <string name="titlescreen_joingamebutton">Join Game</string>
     <string name="available_scenario_list_title">Pick a scenario to play.</string>
+    <string name="joingame_playidfield">Enter Play ID#</string>
 </resources>

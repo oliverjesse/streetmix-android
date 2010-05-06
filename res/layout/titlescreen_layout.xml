@@ -11,7 +11,8 @@
     </ImageView>
     
     <Button 
-        android:id="@+id/playvalue"
+        android:id="@+id/continuegamebutton"
+        android:text="@string/continuegamebutton"
         android:textSize="18px"
         android:layout_width="150px"
         android:layout_height="100px"
@@ -21,10 +22,10 @@
     
     <Button 
         android:id="@+id/joingamebutton"
-        android:text="@string/titlescreen_joingamebutton"
+        android:text="@string/joingamebutton"
         android:textSize="14px"
         android:gravity="center_vertical|center_horizontal"
-        android:layout_toLeftOf="@id/playvalue"
+        android:layout_toLeftOf="@id/continuegamebutton"
         android:singleLine="true"
         android:layout_width="fill_parent"
         android:layout_height="50px"
@@ -34,10 +35,10 @@
 
     <Button 
         android:id="@+id/startgamebutton"
-        android:text="@string/titlescreen_startgamebutton"
+        android:text="@string/startgamebutton"
         android:textSize="14px"
         android:gravity="center_vertical|center_horizontal"
-        android:layout_toLeftOf="@id/playvalue"
+        android:layout_toLeftOf="@id/continuegamebutton"
         android:singleLine="true"
         android:ellipsize="marquee"
         android:layout_alignWithParentIfMissing="true"
@@ -49,7 +50,7 @@
     
     <TextView
         android:id="@+id/titlescreen_debugtext"
-        android:text="BETA v0.1"
+        android:text="ALPHA v0.1"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical|center_horizontal"

@@ -3,6 +3,18 @@
     android:layout_height="fill_parent">
     
     <!--
+    <ListView android:id="@+id/in"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:stackFromBottom="true"
+        android:transcriptMode="alwaysScroll"
+        android:layout_weight="1" >
+        <TextView ...>
+        </TextView>
+    </ListView>
+    -->
+    
+    <!--
     <RadioGroup
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"

@@ -48,7 +48,7 @@
     </Button>
     
     <TextView
-        android:id="@+id/debugimagetext"
+        android:id="@+id/titlescreen_debugtext"
         android:text="BETA v0.1"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
