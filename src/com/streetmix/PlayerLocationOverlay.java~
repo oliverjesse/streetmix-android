@@ -12,19 +12,26 @@ import com.google.android.maps.MapView;
 import com.google.android.maps.MyLocationOverlay;
 
 public class PlayerLocationOverlay extends MyLocationOverlay {
-
+    private Bitmap arrowBitmap;
     private Context context;
+    private int team;
     
-	public PlayerLocationOverlay(Context context, MapView mapView) {
+	public PlayerLocationOverlay(Context context, MapView mapView, int team) {
 		super(context, mapView);
 		this.context = context;
+		this.team = team;
+		
+		arrowBitmap = BitmapFactory.decodeResource(
+            context.getResources(), 
+            (team == GlobalData.BLUE_TEAM) ? 
+            R.drawable.man_blue : R.drawable.man_red
+            );
 	}
 	
 	@Override 
     protected void drawMyLocation(Canvas canvas, MapView mapView, Location lastFix, GeoPoint myLocation, long when) {
         // translate the GeoPoint to screen pixels
         Point screenPts = mapView.getProjection().toPixels(myLocation, null);
-        Bitmap arrowBitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.man_blue);
         
         //Draw the custom player marker.
         canvas.drawBitmap(
